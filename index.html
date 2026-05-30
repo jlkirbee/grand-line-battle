@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Grand Line Battle — One Piece × Pokémon</title>
+<style>
+  :root{
+    --ink:#20283a; --panel:#fbfbf3; --panel-edge:#3a4a63;
+    --hp-green:#4cd07a; --hp-yellow:#f4c150; --hp-red:#e85c5c;
+    --accent:#2a6df4;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;
+    background:#0c1018;
+    display:flex; align-items:center; justify-content:center;
+    min-height:100vh; color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+  }
+  #stage{
+    width:min(96vw,820px);
+    aspect-ratio:4/3;
+    background:#11161f; position:relative;
+    border-radius:14px; overflow:hidden;
+    box-shadow:0 24px 60px rgba(0,0,0,.6), 0 0 0 4px #1c2433;
+    user-select:none;
+  }
+  .screen{position:absolute; inset:0; display:none;}
+  .screen.active{display:block;}
+
+  /* ---------- Title ---------- */
+  #title{
+    background:radial-gradient(120% 90% at 50% 0%,#3aa0ff 0%,#1f5fd0 45%,#13357a 100%);
+    display:none; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; color:#fff; gap:18px;
+  }
+  #title.active{display:flex;}
+  #title h1{font-size:clamp(28px,6vw,54px); letter-spacing:1px; text-shadow:3px 3px 0 #0b2a66;}
+  #title .sub{opacity:.92; font-size:clamp(13px,2.4vw,18px); max-width:80%;}
+  .press{margin-top:10px; padding:14px 28px; font-size:18px; cursor:pointer;
+    background:#ffd23f; color:#5a3b00; border:none; border-radius:10px; font-weight:bold;
+    box-shadow:0 5px 0 #b88a00; transition:transform .06s;}
+  .press:active{transform:translateY(3px); box-shadow:0 2px 0 #b88a00;}
+
+  /* ---------- Select ---------- */
+  #select{
+    background:linear-gradient(160deg,#1a2b4a,#0e1726);
+    padding:18px; color:#eaf0ff;
+  }
+  #select.active{ display:flex; flex-direction:column; }
+  #select h2{text-align:center; font-size:clamp(16px,3vw,24px); margin-bottom:4px; color:#ffd23f;}
+  #select p.hint{text-align:center; font-size:12px; opacity:.7; margin-bottom:12px;}
+  .roster{
+    flex:1; display:grid; grid-template-columns:repeat(5,1fr); gap:10px;
+    overflow:auto;
+  }
+  @media (max-width:560px){ .roster{grid-template-columns:repeat(3,1fr);} }
+  .card{
+    background:#22304d; border:2px solid #34466b; border-radius:10px;
+    display:flex; flex-direction:column; align-items:center; padding:8px 4px 6px;
+    cursor:pointer; transition:transform .08s, border-color .08s, background .08s;
+  }
+  .card:hover{transform:translateY(-3px); border-color:#ffd23f; background:#2b3c61;}
+  .card canvas{width:72px; height:72px; image-rendering:pixelated;}
+  .card .nm{font-size:12px; font-weight:bold; margin-top:2px;}
+  .card .role{font-size:9px; opacity:.6;}
+
+  /* ---------- Battle ---------- */
+  #battle{
+    background:
+      linear-gradient(180deg,#bfeaff 0%,#9fd9ff 38%,#d8f0c0 38%,#bfe49a 100%);
+  }
+  .field{position:absolute; inset:0;}
+  .platform{position:absolute; height:5%; border-radius:50%;
+    background:rgba(90,140,60,.45); filter:blur(1px);}
+  .foe-plat{right:6%; top:46%; width:42%;}
+  .me-plat{left:4%; bottom:20%; width:48%; height:7%;}
+
+  .sprite{position:absolute; image-rendering:pixelated; transition:transform .25s, opacity .25s;}
+  #foeSprite{right:9%; top:15%; width:34%;}
+  #meSprite{left:7%; bottom:23%; width:38%; transform:scaleX(-1);}
+
+  /* status plates */
+  .plate{position:absolute; background:var(--panel); border:3px solid var(--panel-edge);
+    border-radius:10px; padding:7px 10px 8px; width:42%; box-shadow:3px 3px 0 rgba(0,0,0,.18);}
+  .foe-plate{left:4%; top:7%;}
+  .me-plate{right:4%; bottom:33%;}
+  .plate .row1{display:flex; justify-content:space-between; align-items:baseline;}
+  .plate .pname{font-weight:bold; font-size:clamp(11px,2.2vw,15px);}
+  .plate .lvl{font-size:11px; opacity:.7;}
+  .hpwrap{margin-top:5px; display:flex; align-items:center; gap:6px;}
+  .hpwrap .hp-label{font-size:10px; font-weight:bold; color:#d8a200;}
+  .hpbar{flex:1; height:9px; background:#5a5a5a; border-radius:6px; overflow:hidden; border:1px solid #2a2a2a;}
+  .hpfill{height:100%; width:100%; background:var(--hp-green); transition:width .5s ease, background .3s;}
+  .hpnum{font-size:10px; text-align:right; margin-top:2px; opacity:.75;}
+
+  /* bottom UI */
+  .ui{position:absolute; left:0; right:0; bottom:0; height:30%; display:flex; gap:0;}
+  .textbox{flex:1.25; margin:8px; background:var(--panel); border:4px solid var(--panel-edge);
+    border-radius:12px; padding:14px 16px; font-size:clamp(13px,2.6vw,18px);
+    line-height:1.45; display:flex; align-items:center;}
+  .menu{flex:1; margin:8px 8px 8px 0; display:none; grid-template-columns:1fr 1fr; gap:8px;}
+  .menu.show{display:grid;}
+  .move{background:var(--panel); border:3px solid var(--panel-edge); border-radius:10px;
+    cursor:pointer; font-weight:bold; font-size:clamp(11px,2.2vw,15px);
+    display:flex; align-items:center; justify-content:center; text-align:center; padding:4px;
+    transition:background .08s, transform .06s;}
+  .move:hover{background:#ffe9a8;}
+  .move:active{transform:translateY(2px);}
+  .move:disabled{opacity:.45; cursor:default; transform:none; background:var(--panel);}
+
+  .cursor-hint{position:absolute; bottom:6px; right:14px; font-size:11px; color:#fff;
+    opacity:.6; pointer-events:none;}
+
+  /* hit flash & shake */
+  @keyframes shake{0%,100%{transform:translate(0,0)}20%{transform:translate(-6px,2px)}
+    40%{transform:translate(6px,-2px)}60%{transform:translate(-4px,1px)}80%{transform:translate(4px,-1px)}}
+  .shake{animation:shake .35s;}
+  .meShake{animation:shake .35s;} /* applied via JS, keeps scaleX via wrapper */
+  @keyframes flash{0%,100%{filter:none}50%{filter:brightness(2.5) saturate(.3)}}
+  .flash{animation:flash .3s;}
+
+  .toast{position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    background:rgba(12,18,30,.92); color:#fff; padding:18px 30px; border-radius:14px;
+    font-size:clamp(18px,4vw,30px); font-weight:bold; text-align:center; display:none;
+    box-shadow:0 0 0 4px #ffd23f, 0 14px 40px rgba(0,0,0,.5);}
+  .toast.show{display:block;}
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <!-- TITLE -->
+  <div id="title" class="screen active">
+    <h1>⚓ GRAND LINE BATTLE ⚓</h1>
+    <div class="sub">A One Piece × Pokémon-style battle. Pick a Straw Hat, face a random rival, and duel turn-by-turn.</div>
+    <button class="press" id="startBtn">▶ PRESS START</button>
+  </div>
+
+  <!-- SELECT -->
+  <div id="select" class="screen">
+    <h2>CHOOSE YOUR FIGHTER</h2>
+    <p class="hint">Your pick battles a random Straw Hat crewmate.</p>
+    <div class="roster" id="roster"></div>
+  </div>
+
+  <!-- BATTLE -->
+  <div id="battle" class="screen">
+    <div class="field">
+      <div class="platform foe-plat"></div>
+      <div class="platform me-plat"></div>
+      <canvas id="foeSprite" class="sprite"></canvas>
+      <canvas id="meSprite" class="sprite"></canvas>
+
+      <div class="plate foe-plate">
+        <div class="row1"><span class="pname" id="foeName">FOE</span><span class="lvl">Lv50</span></div>
+        <div class="hpwrap"><span class="hp-label">HP</span>
+          <div class="hpbar"><div class="hpfill" id="foeHp"></div></div></div>
+      </div>
+
+      <div class="plate me-plate">
+        <div class="row1"><span class="pname" id="meName">ME</span><span class="lvl">Lv50</span></div>
+        <div class="hpwrap"><span class="hp-label">HP</span>
+          <div class="hpbar"><div class="hpfill" id="meHp"></div></div></div>
+        <div class="hpnum" id="meHpNum">100 / 100</div>
+      </div>
+    </div>
+
+    <div class="ui">
+      <div class="textbox" id="textbox">…</div>
+      <div class="menu" id="menu"></div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+  </div>
+
+</div>
+
+<script>
+/* ============================================================
+   GRAND LINE BATTLE — data
+   ============================================================ */
+const CHARS = [
+  { id:"luffy", name:"LUFFY", role:"Captain",
+    hp:165, atk:95, def:78, spd:92,
+    pal:{skin:"#e8b483", hair:"#221a14", vest:"#d23a2e", short:"#2c5fae", hat:"#f1cf6b", band:"#c0392b"},
+    moves:[["Gum Pistol",45],["Gum Gatling",58],["Red Hawk",82],["Gum Bazooka",70]] },
+
+  { id:"zoro", name:"ZORO", role:"Swordsman",
+    hp:160, atk:98, def:82, spd:80,
+    pal:{skin:"#e8b483", hair:"#5bbf4d", shirt:"#f2f2ea", band:"#1f7a34", steel:"#cdd6e0", hilt:"#2c3550"},
+    moves:[["Oni Giri",55],["Tatsumaki",60],["Santoryu",48],["Asura",88]] },
+
+  { id:"nami", name:"NAMI", role:"Navigator",
+    hp:140, atk:80, def:70, spd:96,
+    pal:{skin:"#f1c79e", hair:"#f08a2e", top:"#3b6fd0", stripe:"#f2f2ea", rod:"#5a4a8a"},
+    moves:[["Thunderbolt",62],["Cyclone",50],["Thunder Lance",80],["Mirage",34]] },
+
+  { id:"sanji", name:"SANJI", role:"Cook",
+    hp:150, atk:90, def:75, spd:90,
+    pal:{skin:"#f1c79e", hair:"#e9c64a", suit:"#1c2230", shirt:"#f2f2ea", brow:"#caa83a"},
+    moves:[["Collier",48],["Concasse",60],["Diable Jambe",85],["Party Kick",52]] },
+
+  { id:"usopp", name:"USOPP", role:"Sniper",
+    hp:135, atk:78, def:68, spd:84,
+    pal:{skin:"#9c6b3f", hair:"#1a1a1a", overall:"#caa14a", band:"#7a8a3a", nose:"#9c6b3f", sling:"#5a3a1a"},
+    moves:[["Lead Star",36],["Fire Star",56],["Impact Star",66],["Pop Green",76]] },
+
+  { id:"chopper", name:"CHOPPER", role:"Doctor",
+    hp:148, atk:82, def:80, spd:82,
+    pal:{fur:"#a9743f", inner:"#f0d9a0", hat:"#d24a6a", hatX:"#f2f2ea", antler:"#d9b06a", nose:"#3b6fd0"},
+    moves:[["Heavy Point",54],["Kung-Fu Point",58],["Horn Point",72],["Guard Point",30]] },
+
+  { id:"robin", name:"ROBIN", role:"Archaeologist",
+    hp:145, atk:85, def:74, spd:78,
+    pal:{skin:"#e8b483", hair:"#1a1a1a", coat:"#5e3a86", shirt:"#3a2b52", arm:"#e8b483"},
+    moves:[["Dos Fleur",42],["Clutch",64],["Cien Fleur",74],["Spider Net",52]] },
+
+  { id:"franky", name:"FRANKY", role:"Shipwright",
+    hp:175, atk:96, def:90, spd:64,
+    pal:{skin:"#d99c6a", hair:"#49c6e8", shirt:"#e85c8a", shade:"#1a1a2a", steel:"#aeb8c4", brief:"#1c1c28"},
+    moves:[["Strong Right",56],["Weapons Left",52],["Coup de Vent",86],["Franky Boxing",46]] },
+
+  { id:"brook", name:"BROOK", role:"Musician",
+    hp:138, atk:88, def:66, spd:94,
+    pal:{bone:"#f3efe2", afro:"#1a1a1a", suit:"#26324a", tie:"#d23a2e", cane:"#6a4a2a", steel:"#cdd6e0"},
+    moves:[["Hanauta Slash",62],["Soul Solid",54],["Polka Remise",46],["Swallow Bond",78]] },
+];
+
+/* ============================================================
+   PIXEL SPRITE ENGINE  (procedural chibi sprites, no assets)
+   Logical grid 32x36, scaled with pixelated rendering.
+   ============================================================ */
+const GW=32, GH=36;
+function makeSprite(canvas){
+  canvas.width=GW; canvas.height=GH;
+  return canvas.getContext("2d");
+}
+function P(ctx,x,y,w,h,c){ ctx.fillStyle=c; ctx.fillRect(x,y,w,h); }
+// rounded-ish blob: a rect with corners shaved
+function blob(ctx,x,y,w,h,c){
+  P(ctx,x+1,y,w-2,h,c); P(ctx,x,y+1,w,h-2,c);
+}
+
+const DRAW = {
+  luffy(ctx,p){
+    legs(ctx,p.short); body(ctx,p.vest,p.skin,true); arms(ctx,p.skin);
+    head(ctx,p.skin); hairMessy(ctx,p.hair);
+    // scar under right eye (viewer-left)
+    P(ctx,12,16,1,2,"#b5563f"); P(ctx,11,18,2,1,"#b5563f");
+    eyes(ctx); smile(ctx);
+    // straw hat
+    blob(ctx,8,5,16,3,p.hat); P(ctx,8,7,16,1,"#caa84e");
+    P(ctx,11,2,10,4,p.hat); P(ctx,11,5,10,1,p.band);
+  },
+  zoro(ctx,p){
+    legs(ctx,"#1f3a4a"); body(ctx,p.shirt,p.skin,false);
+    // green haramaki belly band
+    P(ctx,10,26,12,3,p.band); arms(ctx,p.skin);
+    head(ctx,p.skin); hairSpiky(ctx,p.hair);
+    // scar over left eye (viewer-right) + closed eye
+    P(ctx,18,14,1,5,"#9a5a3a"); P(ctx,12,17,3,2,"#222"); // open eye
+    P(ctx,18,17,3,1,"#444"); // closed eye line
+    mouthFlat(ctx);
+    // three swords on back (hilts over shoulder)
+    P(ctx,5,18,2,10,p.hilt); P(ctx,6,16,2,3,p.steel);
+    P(ctx,24,17,2,3,p.steel); P(ctx,25,19,2,9,p.hilt);
+    P(ctx,22,16,2,3,p.steel); P(ctx,21,18,2,9,p.hilt);
+  },
+  nami(ctx,p){
+    legs(ctx,"#3a5fa0"); body(ctx,p.top,p.skin,false);
+    P(ctx,11,22,10,1,p.stripe); P(ctx,11,25,10,1,p.stripe); arms(ctx,p.skin);
+    head(ctx,p.skin); hairLong(ctx,p.hair);
+    eyes(ctx); smile(ctx);
+    // clima-tact rod in hand
+    P(ctx,25,18,1,9,p.rod);
+  },
+  sanji(ctx,p){
+    legs(ctx,p.suit); body(ctx,p.suit,p.shirt,false);
+    // collar + tie
+    P(ctx,13,21,2,2,p.shirt); P(ctx,17,21,2,2,p.shirt); P(ctx,15,21,2,5,"#111");
+    arms(ctx,p.suit);
+    head(ctx,p.skin); hairSwoop(ctx,p.hair);
+    // visible eye + curly brow
+    P(ctx,17,16,2,2,"#222");
+    P(ctx,16,13,1,1,p.brow);P(ctx,17,12,1,1,p.brow);P(ctx,18,13,1,1,p.brow);P(ctx,17,14,1,1,p.brow);
+    mouthFlat(ctx);
+    // cigarette
+    P(ctx,20,19,3,1,"#eee"); P(ctx,23,19,1,1,"#e8622e");
+  },
+  usopp(ctx,p){
+    legs(ctx,"#5a4a2a"); body(ctx,p.overall,p.skin,false); arms(ctx,p.skin);
+    head(ctx,p.skin);
+    // curly hair + bandana
+    P(ctx,9,8,14,3,p.hair); P(ctx,9,6,4,3,p.hair); P(ctx,19,6,4,3,p.hair);
+    P(ctx,9,11,14,2,p.band);
+    eyes(ctx); smile(ctx);
+    // long nose
+    P(ctx,16,17,7,2,p.nose); P(ctx,22,17,2,1,"#7a5230");
+    // slingshot in hand
+    P(ctx,7,18,1,5,p.sling); P(ctx,6,17,1,2,p.sling); P(ctx,8,17,1,2,p.sling);
+  },
+  chopper(ctx,p){
+    // small reindeer, centered lower
+    legs(ctx,p.fur);
+    P(ctx,10,21,12,8,p.fur); P(ctx,12,24,8,4,p.inner); // belly
+    P(ctx,8,22,3,5,p.fur); P(ctx,21,22,3,5,p.fur); // arms
+    // head
+    blob(ctx,9,9,14,12,p.fur);
+    P(ctx,11,16,3,2,"#222"); P(ctx,18,16,3,2,"#222"); // eyes
+    P(ctx,14,18,4,2,p.nose); // blue nose
+    P(ctx,14,20,4,1,"#7a4a28"); // mouth
+    // pink hat
+    blob(ctx,9,5,14,5,p.hat); P(ctx,14,3,4,3,p.hat);
+    P(ctx,14,6,2,2,p.hatX); P(ctx,16,7,2,2,p.hatX); P(ctx,15,8,2,1,p.hatX);
+    // antlers
+    P(ctx,8,5,1,4,p.antler);P(ctx,6,4,2,1,p.antler);P(ctx,6,2,1,2,p.antler);
+    P(ctx,23,5,1,4,p.antler);P(ctx,24,4,2,1,p.antler);P(ctx,25,2,1,2,p.antler);
+  },
+  robin(ctx,p){
+    legs(ctx,"#3a2b52");
+    // long coat body
+    P(ctx,9,20,14,10,p.coat); P(ctx,13,20,6,8,p.shirt);
+    arms(ctx,p.coat);
+    head(ctx,p.skin); hairLongStraight(ctx,p.hair);
+    eyes(ctx);
+    P(ctx,14,19,4,1,"#a05a6a"); // calm lips
+  },
+  franky(ctx,p){
+    // big build
+    legs(ctx,p.brief);
+    P(ctx,7,19,18,11,p.shirt); // hawaiian shirt torso (wide)
+    P(ctx,9,21,2,2,"#ffd23f");P(ctx,20,24,2,2,"#54d0a0");P(ctx,13,26,2,2,"#ffd23f"); // floral dots
+    // metal forearms
+    P(ctx,5,21,3,7,p.steel); P(ctx,24,21,3,7,p.steel);
+    P(ctx,7,21,2,5,p.skin); P(ctx,23,21,2,5,p.skin);
+    head(ctx,p.skin);
+    // big blue pompadour
+    P(ctx,9,5,14,5,p.hair); P(ctx,11,2,10,4,p.hair); P(ctx,9,9,2,3,p.hair); P(ctx,21,9,2,3,p.hair);
+    P(ctx,11,15,10,3,p.shade); // sunglasses
+    mouthFlat(ctx);
+  },
+  brook(ctx,p){
+    legs(ctx,p.suit); body(ctx,p.suit,p.bone,false);
+    P(ctx,15,21,2,6,p.tie); arms(ctx,p.suit);
+    // skull head
+    blob(ctx,10,11,12,11,p.bone);
+    P(ctx,12,15,3,3,"#111"); P(ctx,17,15,3,3,"#111"); // eye sockets
+    P(ctx,13,19,6,1,"#111"); P(ctx,14,19,1,2,"#111"); P(ctx,17,19,1,2,"#111"); // teeth/nose
+    // big afro
+    blob(ctx,6,2,20,11,p.afro);
+    // cane
+    P(ctx,25,16,1,12,p.cane); P(ctx,24,15,3,1,p.steel);
+  },
+};
+
+/* ---- shared body parts ---- */
+function head(ctx,skin){ blob(ctx,10,10,12,11,skin); }
+function eyes(ctx){ P(ctx,12,15,2,3,"#222"); P(ctx,18,15,2,3,"#222"); }
+function smile(ctx){ P(ctx,13,19,6,1,"#7a3b2a"); P(ctx,13,20,1,1,"#7a3b2a"); P(ctx,18,20,1,1,"#7a3b2a"); }
+function mouthFlat(ctx){ P(ctx,14,19,4,1,"#5a3b2a"); }
+function body(ctx,outfit,skin,openVest){
+  P(ctx,10,21,12,9,outfit);
+  if(openVest){ P(ctx,14,21,4,7,skin); } // open chest
+}
+function arms(ctx,c){ P(ctx,7,21,3,7,c); P(ctx,22,21,3,7,c); }
+function legs(ctx,c){ P(ctx,11,29,4,5,c); P(ctx,17,29,4,5,c); P(ctx,10,33,6,2,"#3a2a1a"); P(ctx,16,33,6,2,"#3a2a1a"); }
+function hairMessy(ctx,c){ P(ctx,9,8,14,4,c); P(ctx,8,10,2,3,c); P(ctx,22,10,2,3,c); P(ctx,11,6,3,2,c); P(ctx,18,6,3,2,c); }
+function hairSpiky(ctx,c){ P(ctx,9,8,14,3,c); P(ctx,9,6,2,3,c); P(ctx,13,5,2,4,c); P(ctx,17,5,2,4,c); P(ctx,21,6,2,3,c); }
+function hairLong(ctx,c){ P(ctx,9,7,14,4,c); P(ctx,8,9,2,12,c); P(ctx,22,9,2,12,c); P(ctx,10,6,12,2,c); }
+function hairLongStraight(ctx,c){ P(ctx,9,7,14,4,c); P(ctx,8,9,2,14,c); P(ctx,22,9,2,14,c); P(ctx,11,5,10,2,c); }
+function hairSwoop(ctx,c){ P(ctx,9,7,14,4,c); P(ctx,9,9,7,5,c); P(ctx,9,11,5,5,c); P(ctx,18,6,4,2,c); }
+
+function renderChar(canvas,ch){
+  const ctx=makeSprite(canvas);
+  ctx.clearRect(0,0,GW,GH);
+  ctx.imageSmoothingEnabled=false;
+  (DRAW[ch.id]||DRAW.luffy)(ctx,ch.pal);
+}
+
+/* ============================================================
+   AUDIO  (tiny WebAudio blips — no asset files)
+   ============================================================ */
+let actx=null;
+function beep(freq,dur,type="square",vol=.04){
+  try{
+    actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(), g=actx.createGain();
+    o.type=type; o.frequency.value=freq; o.connect(g); g.connect(actx.destination);
+    g.gain.value=vol; o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime+dur);
+    o.stop(actx.currentTime+dur);
+  }catch(e){}
+}
+const sfx={
+  blip:()=>beep(620,.03,"square",.02),
+  hit:()=>{beep(160,.12,"sawtooth",.06); },
+  crit:()=>{beep(110,.18,"sawtooth",.07);},
+  faint:()=>{beep(330,.12);setTimeout(()=>beep(247,.18),100);setTimeout(()=>beep(165,.3),240);},
+  win:()=>{[523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,.16,"square",.05),i*120));},
+  select:()=>beep(880,.06,"square",.04),
+};
+
+/* ============================================================
+   GAME STATE & FLOW
+   ============================================================ */
+const $=id=>document.getElementById(id);
+const screens={title:$("title"),select:$("select"),battle:$("battle")};
+function show(name){ for(const k in screens) screens[k].classList.toggle("active",k===name); }
+
+let me=null, foe=null, meHP=0, foeHP=0, busy=false;
+
+/* ----- build roster cards ----- */
+const roster=$("roster");
+CHARS.forEach(ch=>{
+  const card=document.createElement("div");
+  card.className="card";
+  const cv=document.createElement("canvas");
+  card.appendChild(cv);
+  const nm=document.createElement("div"); nm.className="nm"; nm.textContent=ch.name;
+  const role=document.createElement("div"); role.className="role"; role.textContent=ch.role;
+  card.appendChild(nm); card.appendChild(role);
+  card.onclick=()=>{ sfx.select(); startBattle(ch); };
+  roster.appendChild(card);
+  renderChar(cv,ch);
+});
+
+$("startBtn").onclick=()=>{ beep(660,.08); show("select"); };
+
+/* ----- debug hooks for headless screenshots: ?debug=select|battle ----- */
+window.addEventListener("load",()=>{
+  const d=new URLSearchParams(location.search).get("debug");
+  if(d==="select"){ show("select"); }
+  else if(d==="sim"){
+    // headless self-test of core battle math: run many auto-battles, verify termination & sanity
+    let bad=0, maxTurns=0, totalTurns=0, N=2000;
+    for(let k=0;k<N;k++){
+      const ai=k%CHARS.length;
+      const a=CHARS[ai];
+      const b=CHARS[(ai + 1 + ((k*7+3)%(CHARS.length-1)))%CHARS.length]; // always != a
+      let aHP=a.hp, bHP=b.hp, turns=0;
+      while(aHP>0&&bHP>0){
+        turns++;
+        if(turns>500){ bad++; break; } // runaway guard
+        const aMove=a.moves[turns%4][1], bMove=b.moves[(turns+1)%4][1];
+        const first = a.spd>=b.spd ? "a":"b";
+        for(const who of [first, first==="a"?"b":"a"]){
+          if(aHP<=0||bHP<=0) break;
+          if(who==="a"){ const {dmg}=calcDamage(a,b,aMove); bHP-=dmg; }
+          else{ const {dmg}=calcDamage(b,a,bMove); aHP-=dmg; }
+        }
+      }
+      const winnerOK = (aHP<=0)!==(bHP<=0); // exactly one fainted
+      if(!winnerOK) bad++;
+      maxTurns=Math.max(maxTurns,turns); totalTurns+=turns;
+    }
+    show("battle");
+    const ok = bad===0;
+    $("textbox").textContent =
+      `SIM ${ok?"PASS ✓":"FAIL ✗"} — ${N} battles, ${bad} bad, `+
+      `avg ${(totalTurns/N).toFixed(1)} turns, max ${maxTurns} turns.`;
+    $("textbox").style.fontSize="15px";
+    return;
+  }
+  else if(d==="battle"){
+    me=CHARS[0]; foe=CHARS[1]; meHP=me.hp; foeHP=foe.hp;
+    renderChar($("meSprite"),me); renderChar($("foeSprite"),foe);
+    $("meName").textContent=me.name; $("foeName").textContent=foe.name;
+    setHP("me"); setHP("foe"); buildMenu();
+    $("textbox").textContent=`What will ${me.name} do?`;
+    $("menu").classList.add("show");
+    $("meSprite").style.opacity=1; $("foeSprite").style.opacity=1;
+    show("battle");
+  }
+});
+
+/* ----- text typing ----- */
+function typeText(str){
+  return new Promise(res=>{
+    const box=$("textbox"); box.textContent="";
+    let i=0;
+    const t=setInterval(()=>{
+      box.textContent=str.slice(0,++i);
+      if(i%2===0) sfx.blip();
+      if(i>=str.length){ clearInterval(t); setTimeout(res,260); }
+    },22);
+  });
+}
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+
+/* ----- HP bar helpers ----- */
+function hpColor(ratio){ return ratio>.5?"var(--hp-green)":ratio>.2?"var(--hp-yellow)":"var(--hp-red)"; }
+function setHP(who){
+  if(who==="me"){
+    const r=meHP/me.hp; const el=$("meHp");
+    el.style.width=Math.max(0,r*100)+"%"; el.style.background=hpColor(r);
+    $("meHpNum").textContent=`${Math.max(0,Math.round(meHP))} / ${me.hp}`;
+  }else{
+    const r=foeHP/foe.hp; const el=$("foeHp");
+    el.style.width=Math.max(0,r*100)+"%"; el.style.background=hpColor(r);
+  }
+}
+
+/* ----- damage ----- */
+function calcDamage(att,def,power){
+  const ratio=att.atk/def.def;
+  let dmg=(power*ratio*0.42)+2;
+  const crit=Math.random()<1/16;
+  if(crit) dmg*=1.85;
+  dmg*=0.85+Math.random()*0.15;
+  return {dmg:Math.max(1,Math.round(dmg)), crit};
+}
+
+/* ----- start a battle ----- */
+function startBattle(chosen){
+  me=chosen;
+  const others=CHARS.filter(c=>c.id!==chosen.id);
+  foe=others[Math.floor(Math.random()*others.length)];
+  meHP=me.hp; foeHP=foe.hp;
+
+  renderChar($("meSprite"),me);
+  renderChar($("foeSprite"),foe);
+  $("meName").textContent=me.name; $("foeName").textContent=foe.name;
+  setHP("me"); setHP("foe");
+  buildMenu();
+  $("menu").classList.remove("show");
+  show("battle");
+  introSequence();
+}
+
+async function introSequence(){
+  busy=true;
+  // slide-in
+  const fs=$("foeSprite"), ms=$("meSprite");
+  fs.style.opacity=0; fs.style.transform="translateX(60px)";
+  ms.style.opacity=0; ms.style.transform="scaleX(-1) translateX(60px)";
+  await wait(60);
+  fs.style.opacity=1; fs.style.transform="translateX(0)";
+  await typeText(`A wild ${foe.name} blocks your path!`);
+  ms.style.opacity=1; ms.style.transform="scaleX(-1) translateX(0)";
+  await typeText(`Go get 'em, ${me.name}!`);
+  playerTurn();
+}
+
+function buildMenu(){
+  const menu=$("menu"); menu.innerHTML="";
+  me.moves.forEach(([name,power])=>{
+    const b=document.createElement("button");
+    b.className="move"; b.textContent=name;
+    b.onclick=()=>chooseMove(name,power);
+    menu.appendChild(b);
+  });
+}
+
+async function playerTurn(){
+  busy=false;
+  await typeText(`What will ${me.name} do?`);
+  $("menu").classList.add("show");
+}
+
+function setMenuEnabled(on){
+  [...$("menu").children].forEach(b=>b.disabled=!on);
+}
+
+async function chooseMove(name,power){
+  if(busy) return; busy=true;
+  $("menu").classList.remove("show");
+  setMenuEnabled(false);
+
+  const foeMove=foe.moves[Math.floor(Math.random()*foe.moves.length)];
+  // turn order by speed
+  const meFirst = me.spd>=foe.spd;
+  const actions = meFirst
+    ? [["me",name,power],["foe",foeMove[0],foeMove[1]]]
+    : [["foe",foeMove[0],foeMove[1]],["me",name,power]];
+
+  for(const [side,mvName,mvPow] of actions){
+    if(meHP<=0||foeHP<=0) break;
+    await doAttack(side,mvName,mvPow);
+  }
+
+  if(meHP<=0||foeHP<=0){ endBattle(); return; }
+  playerTurn();
+}
+
+async function doAttack(side,mvName,mvPow){
+  const att = side==="me"?me:foe;
+  const def = side==="me"?foe:me;
+  await typeText(`${att.name} used ${mvName}!`);
+  const {dmg,crit}=calcDamage(att,def,mvPow);
+
+  // animate attacker lunge + defender flash/shake
+  const attSpr = side==="me"?$("meSprite"):$("foeSprite");
+  const defSpr = side==="me"?$("foeSprite"):$("meSprite");
+  const baseT = side==="me"?"scaleX(-1)":"";
+  const lunge = side==="me" ? "translate(-8px,-6px)" : "translate(8px,-6px)";
+  attSpr.style.transform = baseT+" "+lunge;
+  await wait(120);
+  attSpr.style.transform = baseT;
+
+  crit?sfx.crit():sfx.hit();
+  defSpr.classList.add("flash"); defSpr.classList.add("shake");
+
+  if(side==="me"){ foeHP=Math.max(0,foeHP-dmg); setHP("foe"); }
+  else{ meHP=Math.max(0,meHP-dmg); setHP("me"); }
+
+  await wait(360);
+  defSpr.classList.remove("flash"); defSpr.classList.remove("shake");
+
+  if(crit) await typeText("A critical hit!");
+}
+
+async function endBattle(){
+  const win = foeHP<=0;
+  const loser = win?$("foeSprite"):$("meSprite");
+  const loserName = win?foe.name:me.name;
+
+  await typeText(`${loserName} fainted!`);
+  sfx.faint();
+  loser.style.opacity=0; loser.style.transform=(loser.id==="meSprite"?"scaleX(-1) ":"")+"translateY(40px)";
+
+  await wait(500);
+  const toast=$("toast");
+  if(win){ sfx.win(); toast.textContent=`🏆 ${me.name} WINS!`; }
+  else{ toast.textContent=`💀 ${me.name} was defeated…`; }
+  toast.classList.add("show");
+  await typeText(win?`${me.name} won the duel!`:`${me.name} is out of the fight…`);
+  await typeText("Tap anywhere to choose again.");
+
+  const back=()=>{
+    document.removeEventListener("click",back);
+    toast.classList.remove("show");
+    // reset sprite transforms
+    $("meSprite").style.transform="scaleX(-1)"; $("meSprite").style.opacity=1;
+    $("foeSprite").style.transform=""; $("foeSprite").style.opacity=1;
+    show("select");
+  };
+  setTimeout(()=>document.addEventListener("click",back),400);
+}
+</script>
+</body>
+</html>
