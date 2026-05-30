@@ -464,6 +464,29 @@ window.addEventListener("load",()=>{
     $("textbox").style.fontSize="15px";
     return;
   }
+  else if(d==="turn"){
+    // self-driving UI test: run a real turn, then report whether moves are re-enabled
+    window.__FAST=true; // speed up typeText/wait
+    me=CHARS[0]; foe=CHARS[1]; meHP=me.hp; foeHP=foe.hp;
+    renderChar($("meSprite"),me); renderChar($("foeSprite"),foe);
+    $("meName").textContent=me.name; $("foeName").textContent=foe.name;
+    setHP("me"); setHP("foe"); buildMenu();
+    $("meSprite").style.opacity=1; $("foeSprite").style.opacity=1;
+    show("battle");
+    (async()=>{
+      await chooseMove(me.moves[0][0], me.moves[0][1]); // first full turn
+      // after resolution, playerTurn() should have re-enabled the menu
+      await wait(50);
+      const btns=[...$("menu").children];
+      const anyDisabled=btns.some(b=>b.disabled);
+      const menuShown=$("menu").classList.contains("show");
+      $("textbox").textContent =
+        (!anyDisabled && menuShown ? "TURN TEST PASS ✓ " : "TURN TEST FAIL ✗ ")+
+        `moves enabled=${!anyDisabled}, menu shown=${menuShown}`;
+      $("textbox").style.fontSize="15px";
+    })();
+    return;
+  }
   else if(d==="battle"){
     me=CHARS[0]; foe=CHARS[1]; meHP=me.hp; foeHP=foe.hp;
     renderChar($("meSprite"),me); renderChar($("foeSprite"),foe);
@@ -478,6 +501,7 @@ window.addEventListener("load",()=>{
 
 /* ----- text typing ----- */
 function typeText(str){
+  if(window.__FAST){ $("textbox").textContent=str; return Promise.resolve(); }
   return new Promise(res=>{
     const box=$("textbox"); box.textContent="";
     let i=0;
@@ -488,7 +512,7 @@ function typeText(str){
     },22);
   });
 }
-const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const wait=ms=>new Promise(r=>setTimeout(r,window.__FAST?0:ms));
 
 /* ----- HP bar helpers ----- */
 function hpColor(ratio){ return ratio>.5?"var(--hp-green)":ratio>.2?"var(--hp-yellow)":"var(--hp-red)"; }
@@ -556,6 +580,7 @@ function buildMenu(){
 
 async function playerTurn(){
   busy=false;
+  setMenuEnabled(true);
   await typeText(`What will ${me.name} do?`);
   $("menu").classList.add("show");
 }
