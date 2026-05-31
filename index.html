@@ -117,6 +117,14 @@
   .move:disabled{opacity:.45; cursor:default; transform:none; background:var(--panel);}
   .move.locked{opacity:.5; font-style:italic; background:repeating-linear-gradient(
     45deg,#ece9dd,#ece9dd 6px,#e0ddd0 6px,#e0ddd0 12px); color:#6a6a5a;}
+  @keyframes unlockGlow{
+    0%,100%{ box-shadow:0 0 0 0 rgba(166,74,208,0); border-color:var(--panel-edge); }
+    15%{ box-shadow:0 0 20px 7px rgba(166,74,208,.9); border-color:#c98be8; }
+    35%{ box-shadow:0 0 5px 1px rgba(166,74,208,.3); border-color:var(--panel-edge); }
+    55%{ box-shadow:0 0 20px 7px rgba(74,160,255,.85); border-color:#7fb6ff; }
+    75%{ box-shadow:0 0 6px 1px rgba(166,74,208,.35); border-color:#c98be8; }
+  }
+  .move.unlock-glow{ animation:unlockGlow 1.6s ease-out; }
 
   .cursor-hint{position:absolute; bottom:6px; right:14px; font-size:11px; color:#fff;
     opacity:.6; pointer-events:none;}
@@ -872,6 +880,21 @@ window.addEventListener("load",()=>{
     })();
     return;
   }
+  else if(d==="glow"){
+    // show Gojo's menu with Hollow Purple just unlocked, glow frozen at peak for the shot
+    me=CHARS.find(c=>c.id==="gojo"); foe=CHARS[0]; meHP=me.hp; foeHP=foe.hp;
+    usedMoves={me:new Set(["Lapse: Blue","Reversal: Red"]),foe:new Set()}; announced=new Set();
+    renderChar($("meSprite"),me); renderChar($("foeSprite"),foe);
+    $("meName").textContent=me.name; $("foeName").textContent=foe.name;
+    setHP("me"); setHP("foe"); buildMenu(); setMenuEnabled(true);
+    $("meSprite").style.opacity=1; $("foeSprite").style.opacity=1;
+    $("textbox").textContent="Blue and Red become one — Hollow Purple is ready!";
+    $("menu").classList.add("show"); show("battle");
+    const btn=[...$("menu").children].find(b=>b._move.req);
+    btn.classList.add("unlock-glow");
+    btn.style.animationDelay="-0.24s"; btn.style.animationPlayState="paused"; // freeze near peak
+    return;
+  }
   else if(d==="lock"){
     // verify Hollow Purple stays locked until BOTH Lapse: Blue and Reversal: Red are used
     window.__FAST=true;
@@ -1310,15 +1333,21 @@ function buildMenu(){
 async function playerTurn(){
   busy=false;
   // announce any move that just became unlocked (e.g. Hollow Purple)
+  const justUnlocked=[];
   for(const mv of me.moves){
     if(mv.req && !announced.has(mv.n) && !isLocked(mv,"me")){
-      announced.add(mv.n);
+      announced.add(mv.n); justUnlocked.push(mv);
       await typeText(`Blue and Red become one — ${mv.n} is ready!`);
     }
   }
   setMenuEnabled(true);
   await typeText(`What will ${me.name} do?`);
   $("menu").classList.add("show");
+  // glow the freshly-unlocked move button(s)
+  for(const mv of justUnlocked){
+    const btn=[...$("menu").children].find(b=>b._move===mv);
+    if(btn){ btn.classList.remove("unlock-glow"); void btn.offsetWidth; btn.classList.add("unlock-glow"); }
+  }
 }
 
 function setMenuEnabled(on){
