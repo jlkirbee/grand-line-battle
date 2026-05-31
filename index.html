@@ -215,36 +215,36 @@ const CHARS = [
     pal:{skin:"#e8b483", hair:"#221a14", vest:"#d23a2e", short:"#2c5fae", hat:"#f1cf6b", band:"#c0392b"},
     // "Kamehameha" is a one-shot KO vs any opponent — per Haddon's request.
     moves:[
-      {n:"Gum Pistol",p:45,fx:"punch",c:"#d23a2e"},
-      {n:"Gum Gatling",p:58,fx:"flurry",c:"#e85c5c"},
-      {n:"Red Hawk",p:82,fx:"fire",c:"#ff6a2a"},
+      {n:"Gum Pistol",p:45,fx:"stretchPunch",c:"#d23a2e"},
+      {n:"Gum Gatling",p:58,fx:"gatling",c:"#e85c5c"},
+      {n:"Red Hawk",p:82,fx:"firehawk",c:"#ff5a2a"},
       {n:"Kamehameha",p:999,fx:"beam",c:"#7fd0ff",x:"ohko"} ] },
 
   { id:"zoro", name:"ZORO", role:"Swordsman", series:"One Piece",
     hp:160, atk:98, def:82, spd:80,
     pal:{skin:"#e8b483", hair:"#5bbf4d", shirt:"#f2f2ea", band:"#1f7a34", steel:"#cdd6e0", hilt:"#2c3550"},
     moves:[
-      {n:"Oni Giri",p:55,fx:"slash",c:"#dfe8ff"},
-      {n:"Tatsumaki",p:60,fx:"wind",c:"#7fd08a"},
+      {n:"Oni Giri",p:55,fx:"crossSlash",c:"#dfe8ff"},
+      {n:"Tatsumaki",p:60,fx:"tornado",c:"#8fe07a"},
       {n:"Santoryu",p:48,fx:"slash3",c:"#eaf0ff"},
-      {n:"Asura",p:88,fx:"slash5",c:"#9fb0d0"} ] },
+      {n:"Asura",p:88,fx:"asura",c:"#c0c8e0"} ] },
 
   { id:"nami", name:"NAMI", role:"Navigator", series:"One Piece",
     hp:140, atk:80, def:70, spd:96,
     pal:{skin:"#f1c79e", hair:"#f08a2e", top:"#3b6fd0", stripe:"#f2f2ea", rod:"#5a4a8a"},
     moves:[
       {n:"Thunderbolt",p:62,fx:"lightning",c:"#ffe14d"},
-      {n:"Cyclone",p:50,fx:"wind",c:"#bfe4ff"},
+      {n:"Cyclone",p:50,fx:"tornado",c:"#bfe4ff"},
       {n:"Thunder Lance",p:80,fx:"lightning",c:"#aee0ff"},
-      {n:"Mirage",p:34,fx:"spark",c:"#d0c0ff"} ] },
+      {n:"Mirage",p:34,fx:"mirage",c:"#cfc4ff"} ] },
 
   { id:"sanji", name:"SANJI", role:"Cook", series:"One Piece",
     hp:150, atk:90, def:75, spd:90,
     pal:{skin:"#f1c79e", hair:"#e9c64a", suit:"#1c2230", shirt:"#f2f2ea", brow:"#caa83a"},
     moves:[
       {n:"Collier",p:48,fx:"kick",c:"#ffd23f"},
-      {n:"Concasse",p:60,fx:"impact",c:"#ffcf6b"},
-      {n:"Diable Jambe",p:85,fx:"fire",c:"#ff7a2a"},
+      {n:"Concasse",p:60,fx:"axeKick",c:"#ffcf6b"},
+      {n:"Diable Jambe",p:85,fx:"firekick",c:"#ff6a2a"},
       {n:"Party Kick",p:52,fx:"flurry",c:"#ffe0a8"} ] },
 
   { id:"usopp", name:"USOPP", role:"Sniper", series:"One Piece",
@@ -254,7 +254,7 @@ const CHARS = [
       {n:"Lead Star",p:36,fx:"projectile",c:"#bcbcbc"},
       {n:"Fire Star",p:56,fx:"fire",c:"#ff7a2a"},
       {n:"Impact Star",p:66,fx:"impact",c:"#caa14a"},
-      {n:"Pop Green",p:76,fx:"projectile",c:"#7ad06a"} ] },
+      {n:"Pop Green",p:76,fx:"plant",c:"#5ec46a"} ] },
 
   { id:"chopper", name:"CHOPPER", role:"Doctor", series:"One Piece",
     hp:148, atk:82, def:80, spd:82,
@@ -262,35 +262,35 @@ const CHARS = [
     moves:[
       {n:"Heavy Point",p:54,fx:"punch",c:"#a9743f"},
       {n:"Kung-Fu Point",p:58,fx:"flurry",c:"#f0d9a0"},
-      {n:"Horn Point",p:72,fx:"impact",c:"#d9b06a"},
+      {n:"Horn Point",p:72,fx:"hornCharge",c:"#d9b06a"},
       {n:"Guard Point",p:30,fx:"shield",c:"#bfe4ff"} ] },
 
   { id:"robin", name:"ROBIN", role:"Archaeologist", series:"One Piece",
     hp:145, atk:85, def:74, spd:78,
     pal:{skin:"#e8b483", hair:"#1a1a1a", coat:"#5e3a86", shirt:"#3a2b52", arm:"#e8b483"},
     moves:[
-      {n:"Dos Fleur",p:42,fx:"claw",c:"#b07ad0"},
-      {n:"Clutch",p:64,fx:"impact",c:"#5e3a86"},
-      {n:"Cien Fleur",p:74,fx:"claw3",c:"#8a5ab0"},
+      {n:"Dos Fleur",p:42,fx:"bloom",c:"#d07ab0"},
+      {n:"Clutch",p:64,fx:"clutch",c:"#b07ad0"},
+      {n:"Cien Fleur",p:74,fx:"bloomMany",c:"#8a5ab0"},
       {n:"Spider Net",p:52,fx:"net",c:"#cda0e0"} ] },
 
   { id:"franky", name:"FRANKY", role:"Shipwright", series:"One Piece",
     hp:175, atk:96, def:90, spd:64,
     pal:{skin:"#d99c6a", hair:"#49c6e8", shirt:"#e85c8a", shade:"#1a1a2a", steel:"#aeb8c4", brief:"#1c1c28"},
     moves:[
-      {n:"Strong Right",p:56,fx:"punch",c:"#49c6e8"},
+      {n:"Strong Right",p:56,fx:"chainFist",c:"#49c6e8"},
       {n:"Weapons Left",p:52,fx:"projectile",c:"#7fd0ff"},
-      {n:"Coup de Vent",p:86,fx:"beam",c:"#bfeaff"},
+      {n:"Coup de Vent",p:86,fx:"aircannon",c:"#cfeeff"},
       {n:"Franky Boxing",p:46,fx:"flurry",c:"#aeb8c4"} ] },
 
   { id:"brook", name:"BROOK", role:"Musician", series:"One Piece",
     hp:138, atk:88, def:66, spd:94,
     pal:{bone:"#f3efe2", afro:"#1a1a1a", suit:"#26324a", tie:"#d23a2e", cane:"#6a4a2a", steel:"#cdd6e0"},
     moves:[
-      {n:"Hanauta Slash",p:62,fx:"slash",c:"#cdd6e0"},
-      {n:"Soul Solid",p:54,fx:"slash",c:"#aee0ff"},
-      {n:"Polka Remise",p:46,fx:"slash3",c:"#e8e8f0"},
-      {n:"Swallow Bond",p:78,fx:"slash5",c:"#9fb0d0"} ] },
+      {n:"Hanauta Slash",p:62,fx:"flashSlash",c:"#cdd6e0"},
+      {n:"Soul Solid",p:54,fx:"iceSlash",c:"#aee0ff"},
+      {n:"Polka Remise",p:46,fx:"thrust",c:"#e8e8f0"},
+      {n:"Swallow Bond",p:78,fx:"thrust",c:"#bfd0e0"} ] },
 
   // ===================== JUJUTSU KAISEN =====================
   { id:"gojo", name:"GOJO", role:"Sorcerer", series:"Jujutsu Kaisen",
@@ -298,15 +298,15 @@ const CHARS = [
     pal:{skin:"#f0cda8", hair:"#f2f2f2", blind:"#171a22", coat:"#0f1320", eye:"#4aa0ff"},
     moves:[
       {n:"Lapse: Blue",p:64,fx:"orb",c:"#4aa0ff"},
-      {n:"Reversal: Red",p:70,fx:"orbRed",c:"#ff4a4a"},
+      {n:"Reversal: Red",p:70,fx:"repulse",c:"#ff4a4a"},
       {n:"Hollow Purple",p:92,fx:"hollow",c:"#a64ad0",req:["Lapse: Blue","Reversal: Red"]},
-      {n:"Unlimited Void",p:80,fx:"domain",c:"#6a8aff"} ] },
+      {n:"Unlimited Void",p:80,fx:"void",c:"#8aa0ff"} ] },
 
   { id:"yuji", name:"YUJI", role:"Vessel", series:"Jujutsu Kaisen",
     hp:160, atk:94, def:80, spd:90,
     pal:{skin:"#e8b88f", hair:"#f2a0b8", jacket:"#1c2230", hood:"#2a3142", zip:"#d0d0d0"},
     moves:[
-      {n:"Divergent Fist",p:60,fx:"impact",c:"#ff7aa0"},
+      {n:"Divergent Fist",p:60,fx:"divergent",c:"#ff7aa0"},
       {n:"Black Flash",p:88,fx:"blackflash",c:"#1a1a1a"},
       {n:"Manji Kick",p:55,fx:"kick",c:"#ffb0c0"},
       {n:"Slaughter Demon",p:58,fx:"slash3",c:"#ff9ab0"} ] },
@@ -315,9 +315,9 @@ const CHARS = [
     hp:150, atk:86, def:82, spd:84,
     pal:{skin:"#e8b88f", hair:"#1c2230", spike:"#2a3346", jacket:"#0f1320", trim:"#3a4660"},
     moves:[
-      {n:"Divine Dogs",p:58,fx:"shadow",c:"#2a3a5a"},
-      {n:"Nue",p:62,fx:"lightning",c:"#6a7aa0"},
-      {n:"Max Elephant",p:70,fx:"beam",c:"#5a7ab0"},
+      {n:"Divine Dogs",p:58,fx:"shadowWolf",c:"#3a4a6a"},
+      {n:"Nue",p:62,fx:"nue",c:"#6a7aa0"},
+      {n:"Max Elephant",p:70,fx:"water",c:"#5a9ad0"},
       {n:"Chimera Shadow",p:78,fx:"domain",c:"#11161f"} ] },
 
   { id:"nobara", name:"NOBARA", role:"Sorcerer", series:"Jujutsu Kaisen",
@@ -325,18 +325,18 @@ const CHARS = [
     pal:{skin:"#f0cda8", hair:"#caa14a", coat:"#3a4252", scarf:"#c0563a", hammer:"#8a6a3a"},
     moves:[
       {n:"Hairpin",p:56,fx:"nails",c:"#e0a050"},
-      {n:"Resonance",p:72,fx:"impact",c:"#caa14a"},
-      {n:"Straw Doll",p:64,fx:"projectile",c:"#d0b070"},
+      {n:"Resonance",p:72,fx:"resonance",c:"#caa14a"},
+      {n:"Straw Doll",p:64,fx:"nails",c:"#d0b070"},
       {n:"Hammer Smash",p:60,fx:"impact",c:"#a07840"} ] },
 
   { id:"sukuna", name:"SUKUNA", role:"Curse King", series:"Jujutsu Kaisen",
     hp:172, atk:99, def:86, spd:92,
     pal:{skin:"#e6b48a", hair:"#d6a0c0", mark:"#1a1a1a", eye:"#c0392b", robe:"#3a2230"},
     moves:[
-      {n:"Dismantle",p:78,fx:"claw3",c:"#ff5a4a"},
+      {n:"Dismantle",p:78,fx:"dismantle",c:"#ff5a4a"},
       {n:"Cleave",p:70,fx:"slash",c:"#e84a3a"},
-      {n:"Open: Fuga",p:95,fx:"fire",c:"#ff7a2a"},
-      {n:"Malevolent Shrine",p:90,fx:"domain",c:"#7a1a1a"} ] },
+      {n:"Open: Fuga",p:95,fx:"firearrow",c:"#ff7a2a"},
+      {n:"Malevolent Shrine",p:90,fx:"shrine",c:"#7a1a1a"} ] },
 
   // ===================== ATTACK ON TITAN =====================
   { id:"eren", name:"EREN", role:"Scout", series:"Attack on Titan",
@@ -345,8 +345,8 @@ const CHARS = [
     moves:[
       {n:"ODM Strike",p:58,fx:"odm",c:"#cdd6e0"},
       {n:"Blade Flurry",p:55,fx:"odmspin",c:"#dfe8ff"},
-      {n:"Titan Shift",p:80,fx:"titan",c:"#ffe14d"},
-      {n:"Hardening",p:70,fx:"shield",c:"#bfe4ff"} ] },
+      {n:"Titan Shift",p:80,fx:"titanShift",c:"#ffe14d"},
+      {n:"Hardening",p:70,fx:"crystal",c:"#bfe4ff"} ] },
 
   { id:"mikasa", name:"MIKASA", role:"Ace", series:"Attack on Titan",
     hp:150, atk:93, def:78, spd:92,
@@ -381,8 +381,8 @@ const CHARS = [
     moves:[
       {n:"Stomp",p:72,fx:"titan",c:"#c2705a"},
       {n:"Nape Bite",p:82,fx:"bite",c:"#caa080"},
-      {n:"Hardening Punch",p:76,fx:"titan",c:"#bfe4ff"},
-      {n:"The Rumbling",p:95,fx:"titan",c:"#9a5a3a"} ] },
+      {n:"Hardening Punch",p:76,fx:"crystal",c:"#bfe4ff"},
+      {n:"The Rumbling",p:95,fx:"rumbling",c:"#cfe04a"} ] },
 ];
 
 /* ============================================================
@@ -1245,8 +1245,171 @@ function fxHollow(c,p,col,s,d,W,H){ c.save(); c.globalCompositeOperation="lighte
       for(let i=0;i<8;i++){ const ang=i*0.78; gline(c,d.x,d.y,d.x+Math.cos(ang)*R*2*a,d.y+Math.sin(ang)*R*2*a,H*0.01,"#c080ff",1-a); } } }
   c.restore(); }
 
+/* ---- canon-flavored signature effects ---- */
+function fxStretch(c,p,col,s,d,W,H){ const t=Math.min(1,p/0.6), e=lerp(s,d,t);
+  gline(c,s.x,s.y,e.x,e.y,H*0.03,col,0.9); gline(c,s.x,s.y,e.x,e.y,H*0.012,"#f0c8a0",0.8);
+  c.save(); c.globalAlpha=0.95; c.fillStyle=col; c.beginPath(); c.arc(e.x,e.y,H*0.045,0,7); c.fill();
+  c.fillStyle="#f0c8a0"; c.beginPath(); c.arc(e.x,e.y,H*0.03,0,7); c.fill(); c.restore();
+  if(p>0.6) fxImpact(c,(p-0.6)/0.4,col,d,W,H); }
+function fxGatling(c,p,col,s,d,W,H){ for(let i=0;i<9;i++){ const t=p*1.7-i*0.1; if(t<0||t>1) continue;
+  const off=((i%3)-1)*H*0.05, e=lerp(s,{x:d.x,y:d.y+off},Math.min(1,t/0.7));
+  gline(c,s.x,s.y,e.x,e.y,H*0.014,col,0.5);
+  c.save(); c.globalAlpha=0.9; c.fillStyle="#f0c8a0"; c.beginPath(); c.arc(e.x,e.y,H*0.024,0,7); c.fill(); c.restore();
+  if(t>0.7) gdot(c,d.x,d.y+off,H*0.04,col,0.6); } }
+function fxFirehawk(c,p,col,s,d,W,H){ const t=Math.min(1,p/0.65), e=lerp(s,d,t);
+  for(let k=0;k<5;k++){ const tt=Math.max(0,t-k*0.07), ee=lerp(s,d,tt); gdot(c,ee.x,ee.y,H*0.06/(k*0.6+1),k<2?col:"#ffce5a",0.5/(k*0.5+1)); }
+  c.save(); c.globalCompositeOperation="lighter"; c.globalAlpha=0.9; c.strokeStyle=col; c.lineWidth=H*0.012;
+  c.translate(e.x,e.y); c.rotate(Math.atan2(d.y-s.y,d.x-s.x));
+  for(const sg of [-1,1]){ c.beginPath(); c.moveTo(0,0); c.quadraticCurveTo(-H*0.05,sg*H*0.08,-H*0.12,sg*H*0.05); c.stroke(); }
+  c.restore(); gdot(c,e.x,e.y,H*0.05,"#fff",0.7);
+  if(p>0.65) fxFire(c,0.55+(p-0.65)/0.35*0.45,"#ff7a2a",s,d,W,H); }
+function fxCross(c,p,col,s,d,W,H){ const len=W*0.14;
+  for(let i=0;i<2;i++){ const t=Math.min(1,Math.max(0,(p-i*0.12)/0.4)); if(t<=0) continue; const a=Math.sin(t*Math.PI);
+    const ang=i?0.7:-0.7, dx=Math.cos(ang)*len*t, dy=Math.sin(ang)*len*t;
+    gline(c,d.x-dx,d.y-dy,d.x+dx,d.y+dy,H*0.02,col,a); gline(c,d.x-dx,d.y-dy,d.x+dx,d.y+dy,H*0.006,"#fff",a*0.9); } }
+function fxTornado(c,p,col,s,d,W,H){ const a=Math.sin(p*Math.PI); c.save(); c.globalAlpha=a; c.strokeStyle=col; c.lineWidth=H*0.012;
+  for(let i=0;i<10;i++){ const yy=d.y+H*0.12-i*H*0.03, rad=H*0.02+i*H*0.006, ph=p*16+i*0.6, w=rad*(0.6+0.4*Math.sin(ph));
+    c.beginPath(); c.ellipse(d.x+Math.cos(ph)*rad*0.3,yy,w,w*0.3,0,0,7); c.stroke(); }
+  for(let i=0;i<4;i++){ const ph=p*20+i*1.6; gline(c,d.x-H*0.05,d.y+H*0.05-i*H*0.04,d.x+H*0.05,d.y+H*0.03-i*H*0.04,H*0.006,"#fff",a*Math.abs(Math.sin(ph))); }
+  c.restore(); }
+function fxAsura(c,p,col,s,d,W,H){ const a=Math.sin(p*Math.PI); gdot(c,d.x,d.y,H*0.16*a,"#3a3050",a*0.5);
+  for(let i=0;i<9;i++){ const t=Math.min(1,Math.max(0,(p-(i%3)*0.08)/0.5)); if(t<=0) continue; const aa=Math.sin(t*Math.PI);
+    const ang=i*(Math.PI*2/9)+p*0.5, len=W*0.12*t;
+    gline(c,d.x,d.y,d.x+Math.cos(ang)*len,d.y+Math.sin(ang)*len,H*0.012,col,aa);
+    gline(c,d.x,d.y,d.x+Math.cos(ang)*len,d.y+Math.sin(ang)*len,H*0.004,"#fff",aa*0.8); }
+  gdot(c,d.x,d.y,H*0.05,"#c0b0ff",a*0.6); }
+function fxMirage(c,p,col,s,d,W,H){ const a=Math.sin(p*Math.PI);
+  for(let i=0;i<3;i++){ const off=(i-1)*W*0.04*Math.sin(p*6+i);
+    c.save(); c.globalAlpha=a*0.3; c.fillStyle=col; c.fillRect(d.x-W*0.03+off,d.y-H*0.06,W*0.06,H*0.12); c.restore(); }
+  for(let i=0;i<8;i++){ const ang=i*0.8+p*3; gdot(c,d.x+Math.cos(ang)*H*0.06,d.y+Math.sin(ang)*H*0.06,H*0.015,col,a*0.5); } }
+function fxAxeKick(c,p,col,s,d,W,H){ if(p<0.5){ const t=p/0.5, ang=-1.2+t*1.7, L=H*0.18, px=d.x, py=d.y-H*0.22;
+    const ex=px+Math.cos(ang)*L, ey=py+Math.sin(ang)*L; gline(c,px,py,ex,ey,H*0.03,col,0.9);
+    c.save(); c.globalAlpha=0.9; c.fillStyle=col; c.beginPath(); c.arc(ex,ey,H*0.03,0,7); c.fill(); c.restore(); }
+  else { fxImpact(c,(p-0.5)/0.5,col,d,W,H); const a=1-(p-0.5)/0.5; gline(c,d.x,d.y-H*0.2,d.x,d.y,H*0.02,"#fff",a); } }
+function fxFirekick(c,p,col,s,d,W,H){ const t=Math.min(1,p/0.55);
+  for(let k=0;k<6;k++){ const tt=Math.max(0,t-k*0.06), e=lerp(s,d,tt); gdot(c,e.x,e.y,H*0.05/(k*0.4+1),k<2?"#ffd23f":col,0.6/(k*0.4+1)); }
+  const le=lerp(s,d,t); gline(c,s.x,s.y,le.x,le.y,H*0.02,col,0.6);
+  if(p>0.55) fxFire(c,0.55+(p-0.55)/0.45*0.45,col,s,d,W,H); }
+function fxPlant(c,p,col,s,d,W,H){ if(p<0.4){ const t=p/0.4, e=lerp(s,d,t); gdot(c,e.x,e.y,H*0.02,col,0.9); }
+  else { const t=(p-0.4)/0.6;
+    for(let i=0;i<5;i++){ const ang=-Math.PI/2+(i-2)*0.4, len=H*0.18*t, ex=d.x+Math.cos(ang)*len, ey=d.y+Math.sin(ang)*len;
+      gline(c,d.x,d.y,ex,ey,H*0.012,col,0.9); gdot(c,ex,ey,H*0.025*t,"#9be86a",0.9); }
+    if(t>0.6) gdot(c,d.x,d.y-H*0.1,H*0.05,"#ff8aa0",(t-0.6)/0.4); } }
+function fxHorn(c,p,col,s,d,W,H){ const t=Math.min(1,p/0.6), e=lerp(s,d,t); gline(c,s.x,s.y,e.x,e.y,H*0.03,col,0.3);
+  c.save(); c.globalAlpha=0.95; c.strokeStyle=col; c.lineWidth=H*0.018; c.lineCap="round";
+  c.translate(e.x,e.y); c.rotate(Math.atan2(d.y-s.y,d.x-s.x));
+  for(const sg of [-1,1]){ c.beginPath(); c.moveTo(-H*0.04,sg*H*0.03); c.lineTo(H*0.04,sg*H*0.015); c.stroke(); }
+  c.restore(); if(p>0.6) fxImpact(c,(p-0.6)/0.4,col,d,W,H); }
+function fxBloom(c,p,col,s,d,W,H,n){ const t=Math.sin(p*Math.PI);
+  for(let i=0;i<n;i++){ const ang=i*(Math.PI*2/n)+0.2, r=H*0.14*Math.min(1,p*1.5), bx=d.x+Math.cos(ang)*r, by=d.y+Math.sin(ang)*r;
+    c.save(); c.globalAlpha=t*0.7; c.fillStyle=col;
+    for(let k=0;k<6;k++){ const pa=k*Math.PI/3; c.beginPath(); c.ellipse(bx+Math.cos(pa)*H*0.012,by+Math.sin(pa)*H*0.012,H*0.012,H*0.006,pa,0,7); c.fill(); }
+    c.restore(); gline(c,bx,by,d.x,d.y,H*0.012,"#f0c8a0",t*0.8); }
+  if(p>0.6) gdot(c,d.x,d.y,H*0.05,col,1-p); }
+function fxClutch(c,p,col,s,d,W,H){ fxBloom(c,p,col,s,d,W,H,6);
+  if(p>0.6){ const a=1-(p-0.6)/0.4; for(let i=0;i<3;i++){ const ang=i*1.2; gline(c,d.x,d.y,d.x+Math.cos(ang)*H*0.06,d.y+Math.sin(ang)*H*0.06,H*0.008,"#fff",a); } } }
+function fxChainFist(c,p,col,s,d,W,H){ const t=Math.min(1,p/0.6), e=lerp(s,d,t);
+  c.save(); c.globalAlpha=0.8; c.strokeStyle="#9aa6b2"; c.lineWidth=H*0.01; c.setLineDash([H*0.02,H*0.012]);
+  c.beginPath(); c.moveTo(s.x,s.y); c.lineTo(e.x,e.y); c.stroke(); c.setLineDash([]); c.restore();
+  c.save(); c.globalAlpha=0.95; c.fillStyle=col; c.fillRect(e.x-H*0.04,e.y-H*0.04,H*0.08,H*0.08);
+  c.fillStyle="#dfe8ef"; c.fillRect(e.x-H*0.04,e.y-H*0.04,H*0.08,H*0.02); c.restore();
+  if(p>0.6) fxImpact(c,(p-0.6)/0.4,col,d,W,H); }
+function fxAircannon(c,p,col,s,d,W,H){ c.save(); c.globalCompositeOperation="lighter";
+  for(let i=0;i<5;i++){ const t=p*1.4-i*0.1; if(t<0||t>1) continue; const e=lerp(s,d,t), a=1-t;
+    c.globalAlpha=a*0.7; c.strokeStyle=col; c.lineWidth=H*0.012;
+    c.beginPath(); c.ellipse(e.x,e.y,H*0.04+t*H*0.02,H*0.07+t*H*0.03,0,0,7); c.stroke(); }
+  c.restore(); if(p>0.7){ const a=1-(p-0.7)/0.3; gdot(c,d.x,d.y,H*0.1*(1-a),col,a*0.6); } }
+function fxThrust(c,p,col,s,d,W,H){ const t=Math.min(1,p/0.4), e=lerp(s,d,t);
+  gline(c,s.x,s.y,e.x,e.y,H*0.008,col,0.9); gdot(c,e.x,e.y,H*0.02,"#fff",0.9);
+  if(p>0.4){ const a=1-(p-0.4)/0.6; for(let i=0;i<4;i++){ const ang=i*Math.PI/2+0.4; gline(c,d.x,d.y,d.x+Math.cos(ang)*H*0.06,d.y+Math.sin(ang)*H*0.06,H*0.006,col,a); } gdot(c,d.x,d.y,H*0.03,"#fff",a); } }
+function fxFlashSlash(c,p,col,s,d,W,H){ if(p<0.4){ const t=p/0.4, x=s.x+(d.x-s.x)*t; gline(c,x,d.y-H*0.1,x,d.y+H*0.1,H*0.01,"#fff",0.6); }
+  else { const t=(p-0.4)/0.6, a=Math.sin(t*Math.PI);
+    gline(c,d.x-W*0.08,d.y-H*0.06,d.x+W*0.08,d.y+H*0.06,H*0.018,col,a); gline(c,d.x-W*0.08,d.y-H*0.06,d.x+W*0.08,d.y+H*0.06,H*0.005,"#fff",a); } }
+function fxIceSlash(c,p,col,s,d,W,H){ fxSlash(c,p,col,d,1,W,H); const a=Math.sin(p*Math.PI);
+  for(let i=0;i<6;i++){ const ang=i*1.0; gdot(c,d.x+Math.cos(ang)*H*0.07,d.y+Math.sin(ang)*H*0.07,H*0.012,"#cfeeff",a*0.7); } }
+function fxRepulse(c,p,col,s,d,W,H){ c.save(); c.globalCompositeOperation="lighter";
+  if(p<0.35){ gdot(c,s.x,s.y,H*0.04+(p/0.35)*H*0.04,col,0.9); }
+  else { const t=(p-0.35)/0.65, e=lerp(s,d,Math.min(1,t/0.5)); gdot(c,e.x,e.y,H*0.06,col,0.9);
+    if(t>0.5){ const a=(t-0.5)/0.5, R=H*0.05+a*H*0.26; c.globalAlpha=1-a; c.strokeStyle=col; c.lineWidth=H*0.02;
+      c.beginPath(); c.arc(d.x,d.y,R,0,7); c.stroke(); gdot(c,d.x,d.y,R*0.5,"#ffd0d0",1-a);
+      for(let i=0;i<10;i++){ const ang=i*0.63; gline(c,d.x,d.y,d.x+Math.cos(ang)*R,d.y+Math.sin(ang)*R,H*0.008,col,1-a); } } }
+  c.restore(); }
+function fxVoid(c,p,col,s,d,W,H){ c.save(); c.globalAlpha=Math.sin(p*Math.PI)*0.55; c.fillStyle=col; c.fillRect(0,0,W,H); c.restore();
+  c.save(); c.globalCompositeOperation="lighter"; const cx=W/2, cy=H/2;
+  for(let i=0;i<8;i++){ const z=(p*1.2+i*0.12)%1, sz=z*W*0.5, a=1-z; c.globalAlpha=a*0.6; c.strokeStyle="#dfe8ff"; c.lineWidth=2; c.strokeRect(cx-sz,cy-sz*0.75,sz*2,sz*1.5); }
+  gdot(c,cx,cy,H*0.1*Math.sin(p*Math.PI),"#fff",0.8); c.restore(); }
+function fxDivergent(c,p,col,s,d,W,H){ if(p<0.4){ const t=p/0.4, e=lerp(s,d,t); gline(c,s.x,s.y,e.x,e.y,H*0.02,col,0.5);
+    c.save(); c.globalAlpha=0.9; c.fillStyle="#f0c8a0"; c.beginPath(); c.arc(e.x,e.y,H*0.03,0,7); c.fill(); c.restore(); }
+  else if(p<0.6){ fxImpact(c,(p-0.4)/0.2,"#fff",d,W,H); }
+  else { fxImpact(c,(p-0.6)/0.4,col,d,W,H); gdot(c,d.x,d.y,H*0.1*(1-(p-0.6)/0.4),col,0.5); } }
+function fxShadowWolf(c,p,col,s,d,W,H){ const a=Math.sin(p*Math.PI);
+  c.save(); c.globalAlpha=a*0.8; c.fillStyle="#0a0e16"; c.beginPath(); c.ellipse(s.x,s.y+H*0.05,H*0.1,H*0.03,0,0,7); c.fill(); c.restore();
+  for(let i=0;i<2;i++){ const t=Math.min(1,Math.max(0,(p-i*0.12)/0.7)), e=lerp(s,d,t);
+    c.save(); c.globalAlpha=0.9; c.fillStyle="#11161f"; c.translate(e.x,e.y+(i?H*0.03:-H*0.03));
+    c.beginPath(); c.ellipse(0,0,H*0.05,H*0.03,0,0,7); c.fill();
+    c.beginPath(); c.moveTo(H*0.04,-H*0.01); c.lineTo(H*0.08,0); c.lineTo(H*0.04,H*0.01); c.fill();
+    c.fillStyle=col; c.fillRect(H*0.02,-H*0.012,H*0.008,H*0.008); c.restore(); } }
+function fxNue(c,p,col,s,d,W,H){ const t=Math.min(1,p/0.7), e=lerp(s,d,t);
+  c.save(); c.globalAlpha=0.9; c.strokeStyle="#11161f"; c.lineWidth=H*0.016; c.lineCap="round";
+  c.translate(e.x,e.y); c.rotate(Math.atan2(d.y-s.y,d.x-s.x));
+  c.beginPath(); c.moveTo(-H*0.06,-H*0.05); c.lineTo(0,0); c.lineTo(-H*0.06,H*0.05); c.stroke(); c.restore();
+  if(p>0.5) fxLightning(c,(p-0.5)/0.5,col,d,W,H); }
+function fxWater(c,p,col,s,d,W,H){ c.save(); c.globalCompositeOperation="lighter"; const t=Math.min(1,p/0.6);
+  for(let i=0;i<14;i++){ const tt=t-(i%7)*0.04; if(tt<0) continue; const e=lerp(s,d,Math.min(1,tt)), off=((i*53%9)-4)*H*0.012; gdot(c,e.x,e.y+off,H*0.03,col,0.5); }
+  if(p>0.6){ const a=1-(p-0.6)/0.4; gdot(c,d.x,d.y,H*0.12*(1-a),col,a*0.6);
+    for(let i=0;i<8;i++){ const ang=i*0.78; gdot(c,d.x+Math.cos(ang)*H*0.1*(1-a),d.y+Math.sin(ang)*H*0.1*(1-a),H*0.02,"#bfe4ff",a); } } c.restore(); }
+function fxResonance(c,p,col,s,d,W,H){ if(p<0.45){ const t=p/0.45, ang=-1.0+t*1.0, px=s.x, py=s.y-H*0.12, ex=px+Math.cos(ang)*H*0.1, ey=py+Math.sin(ang)*H*0.1;
+    gline(c,px,py,ex,ey,H*0.02,col,0.9); c.save(); c.globalAlpha=0.95; c.fillStyle=col; c.fillRect(ex-H*0.03,ey-H*0.02,H*0.06,H*0.04); c.restore();
+    c.save(); c.globalAlpha=0.9; c.fillStyle="#cdd6e0"; c.fillRect(s.x-1,s.y-H*0.02,2,H*0.05); c.restore(); }
+  else { const t=(p-0.45)/0.55, a=Math.sin(t*Math.PI);
+    for(let k=0;k<3;k++){ const rr=t*1.2-k*0.2; if(rr<0) continue; const R=rr*H*0.18; c.save(); c.globalAlpha=Math.max(0,1-rr)*0.8; c.strokeStyle=col; c.lineWidth=H*0.01; c.beginPath(); c.arc(d.x,d.y,R,0,7); c.stroke(); c.restore(); }
+    for(let i=0;i<5;i++){ const ang=i*1.25; gline(c,d.x,d.y,d.x+Math.cos(ang)*H*0.06,d.y+Math.sin(ang)*H*0.06,3,"#cdd6e0",a); } } }
+function fxDismantle(c,p,col,s,d,W,H){ for(let i=0;i<7;i++){ const t=Math.min(1,Math.max(0,(p-i*0.05)/0.4)); if(t<=0||t>=1) continue; const a=Math.sin(t*Math.PI);
+  const yy=d.y-H*0.1+i*H*0.032, x1=d.x-W*0.1*t, x2=d.x+W*0.1*t; gline(c,x1,yy,x2,yy,H*0.01,col,a); gline(c,x1,yy,x2,yy,H*0.003,"#fff",a*0.8); } }
+function fxFirearrow(c,p,col,s,d,W,H){ if(p<0.6){ const t=p/0.6, e=lerp(s,d,t);
+    for(let k=0;k<5;k++){ const tt=Math.max(0,t-k*0.06), ee=lerp(s,d,tt); gdot(c,ee.x,ee.y,H*0.05/(k*0.4+1),k<2?"#ffd23f":col,0.6/(k*0.4+1)); }
+    c.save(); c.globalAlpha=0.95; c.translate(e.x,e.y); c.rotate(Math.atan2(d.y-s.y,d.x-s.x)); c.fillStyle="#fff";
+    c.beginPath(); c.moveTo(H*0.04,0); c.lineTo(-H*0.03,-H*0.025); c.lineTo(-H*0.03,H*0.025); c.fill(); c.restore(); }
+  else fxFire(c,0.55+(p-0.6)/0.4*0.45,col,s,d,W,H); }
+function fxTitanShift(c,p,col,s,d,W,H){ const a=Math.sin(p*Math.PI);
+  c.save(); c.globalAlpha=a; c.strokeStyle="#fff"; c.lineWidth=H*0.02; c.shadowColor=col; c.shadowBlur=16; c.lineJoin="round";
+  c.beginPath(); c.moveTo(s.x,0); for(let i=1;i<=8;i++){ const yy=s.y*i/8, jit=((i*47+Math.floor(p*30))%11-5)*W*0.012; c.lineTo(s.x+jit,yy); } c.lineTo(s.x,s.y);
+  c.stroke(); c.strokeStyle=col; c.lineWidth=H*0.05; c.globalAlpha=a*0.3; c.stroke(); c.restore();
+  if(p>0.5){ const t=(p-0.5)/0.5; gdot(c,s.x,s.y-H*0.05,H*0.14*t,"#fff",(1-t)*0.7);
+    for(let i=0;i<6;i++){ const ang=i; gdot(c,s.x+Math.cos(ang)*H*0.1*t,s.y-Math.sin(ang)*H*0.1*t,H*0.04,"#e8e0c0",(1-t)*0.5); } }
+  if(p>0.6) fxImpact(c,(p-0.6)/0.4,col,d,W,H); }
+function fxCrystal(c,p,col,s,d,W,H){ const a=Math.sin(p*Math.PI);
+  c.save(); c.globalAlpha=a*0.85; c.fillStyle=hexA(col,0.4); c.strokeStyle=col; c.lineWidth=2;
+  for(let i=0;i<5;i++){ const ang=i*1.25+0.3, r=H*0.08, x=s.x+Math.cos(ang)*r, y=s.y+Math.sin(ang)*r;
+    c.beginPath(); c.moveTo(x,y-H*0.04); c.lineTo(x+H*0.02,y); c.lineTo(x,y+H*0.04); c.lineTo(x-H*0.02,y); c.closePath(); c.fill(); c.stroke(); }
+  c.restore(); if(p>0.55) fxImpact(c,(p-0.55)/0.45,col,d,W,H); }
+function fxRumbling(c,p,col,s,d,W,H){ c.save();
+  for(let i=0;i<4;i++){ const x=W*0.15+i*W*0.22+Math.sin(p*4+i)*W*0.01, h=H*0.22, w=W*0.07;
+    c.globalAlpha=0.5+0.1*Math.sin(p*6+i); c.fillStyle="#7a5038"; c.fillRect(x-w/2,H*0.18,w,h);
+    c.beginPath(); c.arc(x,H*0.18,w*0.5,0,7); c.fill(); c.fillStyle=col; c.fillRect(x-2,H*0.17,4,3); }
+  c.restore();
+  if(p>0.4){ const t=(p-0.4)/0.6, a=1-t, R=H*0.05+t*H*0.3;
+    c.save(); c.globalAlpha=a; c.strokeStyle="#e8d0b0"; c.lineWidth=H*0.015; c.beginPath(); c.ellipse(d.x,d.y+H*0.04,R,R*0.4,0,0,7); c.stroke(); c.restore();
+    for(let i=0;i<8;i++){ const ang=i*0.78; gdot(c,d.x+Math.cos(ang)*R*0.8,d.y+H*0.04+Math.sin(ang)*R*0.3,H*0.04,"#cdb49a",a*0.5); } } }
+function fxShrine(c,p,col,s,d,W,H){ c.save(); c.globalAlpha=Math.sin(p*Math.PI)*0.5; c.fillStyle=col; c.fillRect(0,0,W,H); c.restore();
+  const cx=W/2, cy=H/2; c.save(); c.globalAlpha=Math.sin(p*Math.PI)*0.8; c.strokeStyle="#e8d8c0"; c.lineWidth=H*0.012;
+  c.strokeRect(cx-W*0.12,cy-H*0.14,W*0.24,H*0.28);
+  for(let i=-2;i<=2;i++){ c.beginPath(); c.moveTo(cx+i*W*0.05,cy-H*0.14); c.lineTo(cx+i*W*0.05,cy+H*0.14); c.stroke(); } c.restore();
+  for(let i=0;i<10;i++){ const ph=p*12+i*1.3, a=Math.abs(Math.sin(ph))*Math.sin(p*Math.PI);
+    const x=W*0.18+(i%5)*W*0.16, y=H*0.16+Math.floor(i/5)*H*0.18+(i%3)*H*0.04;
+    gline(c,x-W*0.05,y-H*0.04,x+W*0.05,y+H*0.04,H*0.006,"#fff",a*0.8); } }
+
 const FX={
   hollow:fxHollow,
+  stretchPunch:fxStretch, gatling:fxGatling, firehawk:fxFirehawk, crossSlash:fxCross,
+  tornado:fxTornado, asura:fxAsura, mirage:fxMirage, axeKick:fxAxeKick, firekick:fxFirekick,
+  plant:fxPlant, hornCharge:fxHorn, clutch:fxClutch, chainFist:fxChainFist, aircannon:fxAircannon,
+  thrust:fxThrust, flashSlash:fxFlashSlash, iceSlash:fxIceSlash, repulse:fxRepulse, void:fxVoid,
+  divergent:fxDivergent, shadowWolf:fxShadowWolf, nue:fxNue, water:fxWater, resonance:fxResonance,
+  dismantle:fxDismantle, firearrow:fxFirearrow, titanShift:fxTitanShift, crystal:fxCrystal,
+  rumbling:fxRumbling, shrine:fxShrine,
+  bloom:(c,p,col,s,d,W,H)=>fxBloom(c,p,col,s,d,W,H,2),
+  bloomMany:(c,p,col,s,d,W,H)=>fxBloom(c,p,col,s,d,W,H,8),
   slash:(c,p,col,s,d,W,H)=>fxSlash(c,p,col,d,1,W,H),
   slash3:(c,p,col,s,d,W,H)=>fxSlash(c,p,col,d,3,W,H),
   slash5:(c,p,col,s,d,W,H)=>fxSlash(c,p,col,d,5,W,H),
@@ -1316,7 +1479,13 @@ const SND_FAMILY={ slash:"swipe",slash3:"swipe",slash5:"swipe",odm:"swipe",odmsp
   fire:"fire",steam:"air",wind:"air",spark:"shimmer",
   beam:"beam",orb:"beam",orbRed:"beam",spear:"beam",hollow:"hollow",
   lightning:"zap",blackflash:"crack",shadow:"dark",net:"dark",
-  projectile:"blip",nails:"blip",shield:"shield",domain:"boom" };
+  projectile:"blip",nails:"blip",shield:"shield",domain:"boom",
+  stretchPunch:"thud",gatling:"flurry",firehawk:"fire",crossSlash:"swipe",tornado:"air",
+  asura:"swipe",mirage:"shimmer",axeKick:"thud",firekick:"fire",plant:"shimmer",hornCharge:"thud",
+  bloom:"dark",bloomMany:"dark",clutch:"dark",chainFist:"thud",aircannon:"air",thrust:"swipe",
+  flashSlash:"swipe",iceSlash:"swipe",repulse:"boom",void:"boom",divergent:"thud",shadowWolf:"dark",
+  nue:"zap",water:"air",resonance:"thud",dismantle:"swipe",firearrow:"fire",titanShift:"zap",
+  crystal:"shield",rumbling:"quake",shrine:"boom" };
 function playMoveSound(key,name){
   try{ ensureCtx(); if(!music.NOISE) music.NOISE=buildNoise();
     const h=hashStr(name||""), d=(h%7)-3; (SND[SND_FAMILY[key]||"thud"])(d,h);
