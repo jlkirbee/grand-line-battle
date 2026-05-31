@@ -12,6 +12,7 @@ python3 -m http.server 8731
 No build step, no dependencies — a single self-contained HTML file.
 
 ## Features
+- **Create-a-Pirate** — enter a name, Devil Fruit, and bounty to generate your own fighter: a wanted poster, a procedural sprite, and stats scaled by your bounty. Your Devil Fruit's keywords pick your element and 4 themed moves (fire, lightning, ice, gum, blade, beast, etc.). Then challenge Luffy or Zoro.
 - **19 fighters across 3 series** — One Piece (Luffy, Zoro, Nami, Sanji, Usopp, Chopper, Robin, Franky, Brook), Jujutsu Kaisen (Gojo, Yuji, Megumi, Nobara, Sukuna), and Attack on Titan (Eren, Mikasa, Levi, Armin, Titan). Each has unique stats and 4 themed moves. Battles are cross-series — pick anyone, face a random rival.
 - **Per-move attack FX** — every move plays its own animated effect (slashes, beams, fireballs, lightning, ODM blade-spins, titan smashes, domain expansions, etc.) and its own synthesized sound, all generated in code.
 - **Procedural pixel-art sprites** drawn entirely in code on `<canvas>` — no image assets.

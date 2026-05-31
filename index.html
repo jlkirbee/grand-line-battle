@@ -50,6 +50,70 @@
     padding:18px; color:#eaf0ff;
   }
   #select.active{ display:flex; flex-direction:column; }
+  .create-cta{ align-self:center; margin-bottom:12px; padding:9px 18px; cursor:pointer;
+    background:linear-gradient(180deg,#ffd23f,#f0a93f); color:#5a3b00; font-weight:bold;
+    border:none; border-radius:9px; font-size:13px; box-shadow:0 4px 0 #b8761f;}
+  .create-cta:active{ transform:translateY(2px); box-shadow:0 2px 0 #b8761f; }
+
+  /* ---------- Create a Pirate ---------- */
+  #create{ background:linear-gradient(160deg,#2a1f3a,#14101e); color:#eee; padding:18px; }
+  #create.active{ display:flex; align-items:center; justify-content:center; }
+  .create-form{ width:min(420px,92%); background:#241a36; border:2px solid #4a3a66;
+    border-radius:14px; padding:22px; display:flex; flex-direction:column; gap:12px; }
+  .create-form h2{ text-align:center; color:#ffd23f; font-size:clamp(18px,3.4vw,24px); }
+  .create-form label{ display:flex; flex-direction:column; gap:5px; font-size:12px; color:#c9bfe0; }
+  .create-form input{ padding:9px 11px; border-radius:8px; border:2px solid #4a3a66;
+    background:#1a1428; color:#fff; font-size:15px; font-family:inherit; }
+  .create-form input:focus{ outline:none; border-color:#ffd23f; }
+  .form-btns{ display:flex; gap:10px; margin-top:4px; }
+  .form-hint{ font-size:11px; opacity:.6; text-align:center; }
+  .btn-primary{ flex:1; padding:11px; border:none; border-radius:9px; cursor:pointer; font-weight:bold;
+    background:linear-gradient(180deg,#ffd23f,#f0a93f); color:#5a3b00; box-shadow:0 4px 0 #b8761f; font-size:14px; }
+  .btn-primary:active{ transform:translateY(2px); box-shadow:0 2px 0 #b8761f; }
+  .btn-ghost{ padding:9px 14px; border:2px solid #4a3a66; border-radius:9px; cursor:pointer;
+    background:transparent; color:#c9bfe0; font-size:13px; }
+  .btn-ghost:hover{ border-color:#ffd23f; color:#fff; }
+
+  .create-result{ display:none; gap:18px; align-items:center; flex-wrap:wrap; justify-content:center; }
+  .create-result.show{ display:flex; }
+
+  /* wanted poster */
+  .poster{ transform:rotate(-2deg); }
+  .poster-edge{ width:200px; background:linear-gradient(160deg,#e9d8a8,#d8c08a);
+    border:6px solid #b89a5a; border-radius:4px; padding:8px 10px 6px; color:#3a2a14;
+    box-shadow:0 12px 30px rgba(0,0,0,.5); font-family:"Georgia","Times New Roman",serif; text-align:center;
+    background-image:radial-gradient(rgba(120,90,40,.12) 1px, transparent 1px); background-size:5px 5px; }
+  .poster-top{ font-size:34px; font-weight:900; letter-spacing:2px; line-height:1; }
+  .poster-frame{ margin:5px 0; border:3px solid #3a2a14; background:#cbb988; }
+  .poster-frame canvas{ width:100%; display:block; image-rendering:pixelated; }
+  .poster-doa{ font-size:13px; font-weight:bold; letter-spacing:1px; border-top:2px solid #3a2a14;
+    border-bottom:2px solid #3a2a14; padding:2px 0; }
+  .poster-name{ font-size:18px; font-weight:900; margin-top:5px; letter-spacing:.5px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .poster-bounty{ font-size:21px; font-weight:900; display:flex; align-items:center; justify-content:center; gap:3px; }
+  .poster-bounty .berry{ font-size:18px; }
+  .poster-foot{ font-size:11px; letter-spacing:3px; opacity:.7; margin-top:2px; }
+
+  /* stat panel */
+  .statpanel{ width:min(300px,92%); background:#241a36; border:2px solid #4a3a66;
+    border-radius:14px; padding:16px; display:flex; flex-direction:column; gap:8px; }
+  .statpanel h3{ font-size:20px; color:#ffd23f; }
+  .stat-fruit{ font-size:12px; opacity:.7; margin-top:-4px; margin-bottom:4px; }
+  .statbars{ display:flex; flex-direction:column; gap:5px; }
+  .statrow{ display:grid; grid-template-columns:34px 1fr 30px; align-items:center; gap:7px; font-size:11px; }
+  .statrow .bar{ height:8px; background:#1a1428; border-radius:5px; overflow:hidden; }
+  .statrow .fill{ height:100%; border-radius:5px; }
+  .statrow .val{ text-align:right; opacity:.85; }
+  .movelist-label,.fight-label{ font-size:10px; letter-spacing:1px; opacity:.55; margin-top:6px; }
+  .movelist{ display:grid; grid-template-columns:1fr 1fr; gap:5px; }
+  .movelist .mv{ background:#1a1428; border:1px solid #4a3a66; border-radius:7px; padding:5px 7px;
+    font-size:11px; display:flex; flex-direction:column; }
+  .movelist .mv b{ font-size:11px; }
+  .movelist .mv span{ font-size:9px; opacity:.55; }
+  .fight-btns{ display:flex; gap:8px; }
+  .btn-fight{ flex:1; padding:10px; border:none; border-radius:9px; cursor:pointer; font-weight:bold;
+    background:linear-gradient(180deg,#e85c5c,#c0392b); color:#fff; box-shadow:0 4px 0 #8a2820; font-size:13px; }
+  .btn-fight:active{ transform:translateY(2px); box-shadow:0 2px 0 #8a2820; }
   #select h2{text-align:center; font-size:clamp(16px,3vw,24px); margin-bottom:4px; color:#ffd23f;}
   #select p.hint{text-align:center; font-size:12px; opacity:.7; margin-bottom:12px;}
   .roster{
@@ -166,8 +230,53 @@
   <!-- SELECT -->
   <div id="select" class="screen">
     <h2>CHOOSE YOUR FIGHTER</h2>
-    <p class="hint">Your pick battles a random rival from across the roster.</p>
+    <p class="hint">Your pick battles a random rival — or forge your own pirate.</p>
+    <button id="createCta" class="create-cta">✍️ Create Your Own Pirate</button>
     <div class="roster" id="roster"></div>
+  </div>
+
+  <!-- CREATE A PIRATE -->
+  <div id="create" class="screen">
+    <div class="create-form" id="createForm">
+      <h2>⚓ CREATE YOUR PIRATE</h2>
+      <label>Pirate Name
+        <input id="inName" maxlength="18" placeholder="e.g. Crimson Jack" autocomplete="off"></label>
+      <label>Devil Fruit
+        <input id="inFruit" maxlength="28" placeholder="e.g. Flame-Flame Fruit" autocomplete="off"></label>
+      <label>Bounty (฿ Berries)
+        <input id="inBounty" type="number" min="0" step="1000000" placeholder="e.g. 500000000"></label>
+      <div class="form-btns">
+        <button id="genBtn" class="btn-primary">Generate Wanted Poster ▶</button>
+        <button id="createBack" class="btn-ghost">← Back</button>
+      </div>
+      <p class="form-hint">Your bounty sets your power tier. The Devil Fruit shapes your moves &amp; element.</p>
+    </div>
+
+    <div class="create-result" id="createResult">
+      <div class="poster" id="poster">
+        <div class="poster-edge">
+          <div class="poster-top">WANTED</div>
+          <div class="poster-frame"><canvas id="posterSprite"></canvas></div>
+          <div class="poster-doa">DEAD&nbsp;OR&nbsp;ALIVE</div>
+          <div class="poster-name" id="posterName">NAME</div>
+          <div class="poster-bounty"><span class="berry">฿</span><span id="posterBounty">0</span></div>
+          <div class="poster-foot">MARINE</div>
+        </div>
+      </div>
+      <div class="statpanel">
+        <h3 id="statName">NAME</h3>
+        <div class="stat-fruit" id="statFruit">Devil Fruit</div>
+        <div class="statbars" id="statBars"></div>
+        <div class="movelist-label">MOVES</div>
+        <div class="movelist" id="statMoves"></div>
+        <div class="fight-label">CHALLENGE A LEGEND</div>
+        <div class="fight-btns">
+          <button id="fightLuffy" class="btn-fight">⚔ Fight LUFFY</button>
+          <button id="fightZoro" class="btn-fight">⚔ Fight ZORO</button>
+        </div>
+        <button id="editChar" class="btn-ghost">← Edit Pirate</button>
+      </div>
+    </div>
   </div>
 
   <!-- BATTLE -->
@@ -606,6 +715,22 @@ Object.assign(DRAW,{
   },
 });
 
+/* ---- player-created pirate (palette + style flags drive the look) ---- */
+DRAW.custom=function(ctx,p){
+  legs(ctx,"#2a2a32");
+  body(ctx,p.coat,p.shirt,true);          // open coat over a shirt
+  P(ctx,10,21,12,1,p.sash);               // sash across chest
+  arms(ctx,p.coat);
+  head(ctx,p.skin);
+  (p.hairStyle===0?hairMessy:p.hairStyle===1?hairSpiky:hairLong)(ctx,p.hair);
+  if(p.acc===0){ P(ctx,9,11,14,2,p.band); P(ctx,8,11,2,5,p.band); }   // bandana + tail
+  else { blob(ctx,8,6,16,3,p.band); P(ctx,11,3,10,4,p.band); }        // pirate hat
+  if(p.eyepatch){ P(ctx,11,14,5,4,"#15151a"); P(ctx,10,15,1,2,"#15151a"); P(ctx,18,15,2,3,"#222"); }
+  else eyes(ctx);
+  P(ctx,12,17,1,3,"#b5563f");             // scar
+  smile(ctx);
+};
+
 function renderChar(canvas,ch){
   const ctx=makeSprite(canvas);
   ctx.clearRect(0,0,GW,GH);
@@ -792,7 +917,7 @@ function setMusicEnabled(on){
    GAME STATE & FLOW
    ============================================================ */
 const $=id=>document.getElementById(id);
-const screens={title:$("title"),select:$("select"),battle:$("battle")};
+const screens={title:$("title"),select:$("select"),create:$("create"),battle:$("battle")};
 function show(name){ for(const k in screens) screens[k].classList.toggle("active",k===name); }
 
 let me=null, foe=null, meHP=0, foeHP=0, busy=false;
@@ -829,6 +954,23 @@ $("muteBtn").onclick=(e)=>{ e.stopPropagation(); setMusicEnabled(!music.enabled)
 window.addEventListener("load",()=>{
   const d=new URLSearchParams(location.search).get("debug");
   if(d==="select"){ show("select"); }
+  else if(d==="create"){ show("create"); }
+  else if(d==="poster"){
+    const qp=new URLSearchParams(location.search);
+    customChar=buildPirate(qp.get("n")||"Crimson Jack", qp.get("f")||"Flame-Flame Fruit",
+      parseInt(qp.get("b"),10)||860000000);
+    showPoster(); show("create");
+  }
+  else if(d==="cfight"){
+    customChar=buildPirate("Crimson Jack","Flame-Flame Fruit",860000000);
+    me=customChar; foe=CHARS.find(c=>c.id==="luffy"); meHP=me.hp; foeHP=foe.hp;
+    usedMoves={me:new Set(),foe:new Set()}; announced=new Set();
+    renderChar($("meSprite"),me); renderChar($("foeSprite"),foe);
+    $("meName").textContent=me.name; $("foeName").textContent=foe.name;
+    setHP("me"); setHP("foe"); buildMenu(); setMenuEnabled(true);
+    $("textbox").textContent=`What will ${me.name} do?`; $("menu").classList.add("show");
+    $("meSprite").style.opacity=1; $("foeSprite").style.opacity=1; show("battle");
+  }
   else if(d==="sim"){
     // headless self-test of core battle math: run many auto-battles, verify termination & sanity
     let bad=0, maxTurns=0, totalTurns=0, N=2000;
@@ -1059,10 +1201,10 @@ function calcDamage(att,def,power){
 }
 
 /* ----- start a battle ----- */
-function startBattle(chosen){
+function startBattle(chosen, opponent){
   me=chosen;
-  const others=CHARS.filter(c=>c.id!==chosen.id);
-  foe=others[Math.floor(Math.random()*others.length)];
+  if(opponent){ foe=opponent; }
+  else { const others=CHARS.filter(c=>c.id!==chosen.id); foe=others[Math.floor(Math.random()*others.length)]; }
   meHP=me.hp; foeHP=foe.hp;
   usedMoves={me:new Set(), foe:new Set()}; announced=new Set();
 
@@ -1621,10 +1763,122 @@ async function endBattle(){
     // reset sprite transforms
     $("meSprite").style.transform="scaleX(-1)"; $("meSprite").style.opacity=1;
     $("foeSprite").style.transform=""; $("foeSprite").style.opacity=1;
-    show("select");
+    if(pendingReturn){ const r=pendingReturn; pendingReturn=null; r(); }
+    else show("select");
   };
   setTimeout(()=>document.addEventListener("click",back),400);
 }
+
+/* ============================================================
+   CREATE-A-PIRATE  — form → wanted poster + stats → fight
+   ============================================================ */
+let pendingReturn=null, customChar=null;
+const clampN=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+
+// Devil-Fruit keyword -> element theme (color + 4 moves with matching FX)
+const THEMES=[
+  {keys:["fire","flame","mera","magma","burn","blaze","heat","sun"], color:"#ff6a2a",
+    moves:[["Flame Fist","fire"],["Fire Pillar","firearrow"],["Blazing Kick","firekick"],["Phoenix Rush","firehawk"]]},
+  {keys:["thunder","lightning","electr","rumble","goro","volt","plasma","spark"], color:"#ffe14d",
+    moves:[["Thunder Strike","lightning"],["Volt Lance","lightning"],["Storm Surge","tornado"],["Plasma Burst","beam"]]},
+  {keys:["ice","frost","freeze","hie","snow","cold","glacier","blizzard"], color:"#aee0ff",
+    moves:[["Frost Slash","iceSlash"],["Ice Spear","spear"],["Blizzard","tornado"],["Permafrost","impact"]]},
+  {keys:["light","pika","laser","photon","shine","glow","prism"], color:"#fff0a0",
+    moves:[["Light Beam","beam"],["Photon Lance","spear"],["Flash Step","slash"],["Solar Flare","fire"]]},
+  {keys:["dark","yami","shadow","gravity","black","night","void","abyss"], color:"#9b5ad0",
+    moves:[["Dark Pulse","void"],["Shadow Claw","shadowWolf"],["Black Hole","domain"],["Abyss Slash","slash5"]]},
+  {keys:["gum","rubber","gomu","elastic","bounce","nika"], color:"#d23a2e",
+    moves:[["Rubber Pistol","stretchPunch"],["Rubber Gatling","gatling"],["Rubber Bazooka","impact"],["Rubber Hawk","firehawk"]]},
+  {keys:["quake","tremor","gura","earth","rock","stone","seismic","mountain"], color:"#b98a4a",
+    moves:[["Quake Punch","impact"],["Seismic Slam","titan"],["Boulder Crush","impact"],["Aftershock","rumbling"]]},
+  {keys:["water","aqua","sea","ocean","wave","swim","mizu","tide"], color:"#3a9ad0",
+    moves:[["Tidal Blast","water"],["Aqua Lance","spear"],["Whirlpool","tornado"],["Deluge","water"]]},
+  {keys:["sword","blade","slice","cut","slash","steel","metal","supa","saber"], color:"#cdd6e0",
+    moves:[["Blade Rush","slash"],["Cross Cut","crossSlash"],["Tempest Slash","slash5"],["Iaido Flash","flashSlash"]]},
+  {keys:["wind","air","storm","gale","sky","sora","breeze","cyclone"], color:"#bfe4ff",
+    moves:[["Gale Slash","tornado"],["Air Cannon","aircannon"],["Cyclone","tornado"],["Sky Strike","odm"]]},
+  {keys:["poison","venom","doku","toxic","gas","acid"], color:"#8ad06a",
+    moves:[["Venom Claw","claw3"],["Toxic Spray","projectile"],["Poison Mist","spark"],["Hydra","water"]]},
+  {keys:["beast","zoan","dragon","wolf","tiger","lion","snake","bird","ryu","leopard"], color:"#caa14a",
+    moves:[["Beast Fang","bite"],["Wild Claw","claw3"],["Predator Rush","punch"],["Primal Roar","impact"]]},
+  {keys:["string","thread","ito","web","wire","silk"], color:"#e0a0d0",
+    moves:[["Cutting Wire","slash3"],["Puppet Bind","net"],["String Clone","net"],["Blade Web","slash5"]]},
+  {keys:["flower","bloom","hana","petal","rose"], color:"#e07ab0",
+    moves:[["Bloom Strike","bloom"],["Hundred Arms","bloomMany"],["Clutch","clutch"],["Petal Storm","spark"]]},
+];
+const THEME_DEFAULT={ color:"#c0563a",
+  moves:[["Power Punch","punch"],["Heavy Slash","slash"],["Crushing Blow","impact"],["Flurry Rush","flurry"]]};
+function detectTheme(fruit){
+  const f=(fruit||"").toLowerCase();
+  return THEMES.find(t=>t.keys.some(k=>f.includes(k))) || THEME_DEFAULT;
+}
+
+function buildPirate(name, fruit, bounty){
+  const seed=hashStr((name||"")+"|"+(fruit||"")+"|"+bounty);
+  const theme=detectTheme(fruit);
+  const skins=["#e8b483","#f1c79e","#d99c6a","#9c6b3f","#ecc6a0"];
+  const hairs=["#1a1a1a","#5a3a1a","#caa14a","#c0392b","#3a4660","#f2f2f2","#5bbf4d","#e8e8ea"];
+  const pal={ skin:skins[seed%skins.length], hair:hairs[(seed>>3)%hairs.length],
+    coat:theme.color, shirt:"#f2f2ea", band:theme.color, sash:"#241a2e",
+    hairStyle:(seed>>5)%3, acc:(seed>>7)%2, eyepatch:((seed>>9)%3===0) };
+  // bounty -> power tier (log scale, ~0..1 over 0 .. 2 billion berries)
+  const bf=clampN(Math.log10(Math.max(1,bounty)+10)/9.3,0,1.05);
+  const hp =clampN(128+Math.round(bf*72)+(seed%14),120,205);
+  const atk=clampN(70 +Math.round(bf*28)+((seed>>2)%10),68,104);
+  const def=clampN(64 +Math.round(bf*24)+((seed>>4)%10),60,96);
+  const spd=clampN(62 +Math.round(bf*34)+((seed>>6)%12),58,102);
+  const powers=[48,62,82,56];
+  const moves=theme.moves.map((m,i)=>({n:m[0],p:powers[i],fx:m[1],c:theme.color}));
+  return { id:"custom", name:(name||"NAMELESS").toUpperCase().slice(0,18), role:"Pirate",
+    series:"Your Pirate", hp,atk,def,spd, pal, moves,
+    fruit:(fruit||"Mystery Fruit"), bounty:Math.max(0,Math.floor(bounty||0)), color:theme.color };
+}
+
+function fmtBounty(n){ return (n||0).toLocaleString("en-US"); }
+function statRow(label,val,max,col){
+  const pct=clampN(val/max*100,4,100);
+  return `<div class="statrow"><span>${label}</span>
+    <div class="bar"><div class="fill" style="width:${pct}%;background:${col}"></div></div>
+    <span class="val">${val}</span></div>`;
+}
+function showPoster(){
+  const ch=customChar;
+  renderChar($("posterSprite"),ch);
+  $("posterName").textContent=ch.name;
+  $("posterBounty").textContent=fmtBounty(ch.bounty);
+  $("statName").textContent=ch.name;
+  $("statFruit").textContent=ch.fruit;
+  $("statBars").innerHTML =
+    statRow("HP",ch.hp,210,"#4cd07a")+statRow("ATK",ch.atk,110,"#e85c5c")+
+    statRow("DEF",ch.def,110,"#4aa0ff")+statRow("SPD",ch.spd,110,"#ffd23f");
+  $("statMoves").innerHTML = ch.moves.map(m=>
+    `<div class="mv"><b>${m.n}</b><span>PWR ${m.p} · ${m.fx}</span></div>`).join("");
+  $("createForm").style.display="none";
+  $("createResult").classList.add("show");
+}
+
+$("createCta").onclick=()=>{ sfx.select();
+  $("createResult").classList.remove("show"); $("createForm").style.display="flex"; show("create"); };
+$("createBack").onclick=()=>{ beep(440,.06); show("select"); };
+$("editChar").onclick=()=>{ beep(440,.06);
+  $("createResult").classList.remove("show"); $("createForm").style.display="flex"; };
+$("genBtn").onclick=()=>{
+  const name=$("inName").value.trim();
+  const fruit=$("inFruit").value.trim();
+  const bounty=parseInt($("inBounty").value,10)||0;
+  if(!name){ $("inName").focus(); $("inName").style.borderColor="#e85c5c"; return; }
+  customChar=buildPirate(name,fruit,bounty);
+  sfx.unlock();
+  showPoster();
+};
+function fightCustom(foeId){
+  if(!customChar) return;
+  const foeChar=CHARS.find(c=>c.id===foeId);
+  pendingReturn=()=>{ showPoster(); show("create"); }; // back to poster after the duel
+  startBattle(customChar, foeChar);
+}
+$("fightLuffy").onclick=()=>{ sfx.select(); fightCustom("luffy"); };
+$("fightZoro").onclick =()=>{ sfx.select(); fightCustom("zoro"); };
 </script>
 </body>
 </html>
