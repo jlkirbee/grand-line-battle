@@ -186,7 +186,9 @@ const CHARS = [
   { id:"luffy", name:"LUFFY", role:"Captain",
     hp:165, atk:95, def:78, spd:92,
     pal:{skin:"#e8b483", hair:"#221a14", vest:"#d23a2e", short:"#2c5fae", hat:"#f1cf6b", band:"#c0392b"},
-    moves:[["Gum Pistol",45],["Gum Gatling",58],["Red Hawk",82],["Gum Bazooka",70]] },
+    // "Kamehameha" is a one-shot KO vs any opponent — per Haddon's request.
+    // The "ohko" flag (3rd element) is handled in doAttack().
+    moves:[["Gum Pistol",45],["Gum Gatling",58],["Red Hawk",82],["Kamehameha",999,"ohko"]] },
 
   { id:"zoro", name:"ZORO", role:"Swordsman",
     hp:160, atk:98, def:82, spd:80,
@@ -474,7 +476,7 @@ window.addEventListener("load",()=>{
     $("meSprite").style.opacity=1; $("foeSprite").style.opacity=1;
     show("battle");
     (async()=>{
-      await chooseMove(me.moves[0][0], me.moves[0][1]); // first full turn
+      await chooseMove(me.moves[0]); // first full turn
       // after resolution, playerTurn() should have re-enabled the menu
       await wait(50);
       const btns=[...$("menu").children];
@@ -483,6 +485,29 @@ window.addEventListener("load",()=>{
       $("textbox").textContent =
         (!anyDisabled && menuShown ? "TURN TEST PASS ✓ " : "TURN TEST FAIL ✗ ")+
         `moves enabled=${!anyDisabled}, menu shown=${menuShown}`;
+      $("textbox").style.fontSize="15px";
+    })();
+    return;
+  }
+  else if(d==="ohko"){
+    // Haddon's Kamehameha test: one move must drop any foe to 0 HP
+    window.__FAST=true;
+    me=CHARS[0]; foe=CHARS[4]; meHP=me.hp; foeHP=foe.hp; // Luffy vs Usopp
+    renderChar($("meSprite"),me); renderChar($("foeSprite"),foe);
+    $("meName").textContent=me.name; $("foeName").textContent=foe.name;
+    setHP("me"); setHP("foe"); buildMenu();
+    $("meSprite").style.opacity=1; $("foeSprite").style.opacity=1;
+    show("battle");
+    const kame=me.moves.find(m=>m[2]==="ohko");
+    (async()=>{
+      const before=foeHP;
+      // call doAttack directly so we observe the hit even though endBattle fires after
+      await doAttack("me", kame);
+      const ok = foeHP<=0 && before>0 && kame[0]==="Kamehameha";
+      $("toast").textContent = ok ? "OHKO PASS ✓" : "OHKO FAIL ✗";
+      $("toast").classList.add("show");
+      $("textbox").textContent =
+        `${ok?"OHKO PASS ✓":"OHKO FAIL ✗"} — ${foe.name} HP ${before} → ${foeHP} via ${kame[0]}`;
       $("textbox").style.fontSize="15px";
     })();
     return;
@@ -570,10 +595,10 @@ async function introSequence(){
 
 function buildMenu(){
   const menu=$("menu"); menu.innerHTML="";
-  me.moves.forEach(([name,power])=>{
+  me.moves.forEach(mv=>{
     const b=document.createElement("button");
-    b.className="move"; b.textContent=name;
-    b.onclick=()=>chooseMove(name,power);
+    b.className="move"; b.textContent=mv[0];
+    b.onclick=()=>chooseMove(mv);
     menu.appendChild(b);
   });
 }
@@ -589,7 +614,7 @@ function setMenuEnabled(on){
   [...$("menu").children].forEach(b=>b.disabled=!on);
 }
 
-async function chooseMove(name,power){
+async function chooseMove(move){
   if(busy) return; busy=true;
   $("menu").classList.remove("show");
   setMenuEnabled(false);
@@ -598,23 +623,32 @@ async function chooseMove(name,power){
   // turn order by speed
   const meFirst = me.spd>=foe.spd;
   const actions = meFirst
-    ? [["me",name,power],["foe",foeMove[0],foeMove[1]]]
-    : [["foe",foeMove[0],foeMove[1]],["me",name,power]];
+    ? [["me",move],["foe",foeMove]]
+    : [["foe",foeMove],["me",move]];
 
-  for(const [side,mvName,mvPow] of actions){
+  for(const [side,mv] of actions){
     if(meHP<=0||foeHP<=0) break;
-    await doAttack(side,mvName,mvPow);
+    await doAttack(side,mv);
   }
 
   if(meHP<=0||foeHP<=0){ endBattle(); return; }
   playerTurn();
 }
 
-async function doAttack(side,mvName,mvPow){
+async function doAttack(side,mv){
+  const [mvName,mvPow,flag]=mv;
   const att = side==="me"?me:foe;
   const def = side==="me"?foe:me;
   await typeText(`${att.name} used ${mvName}!`);
-  const {dmg,crit}=calcDamage(att,def,mvPow);
+
+  // OHKO move (Haddon's request: Luffy's Kamehameha one-shots any opponent)
+  let dmg, crit=false;
+  if(flag==="ohko"){
+    await typeText("A devastating wave of energy erupts!");
+    dmg = (side==="me"?foeHP:meHP); // exactly lethal — drops target to 0
+  }else{
+    ({dmg,crit}=calcDamage(att,def,mvPow));
+  }
 
   // animate attacker lunge + defender flash/shake
   const attSpr = side==="me"?$("meSprite"):$("foeSprite");
