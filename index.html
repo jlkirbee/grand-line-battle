@@ -31,6 +31,31 @@
   .screen{position:absolute; inset:0; display:none;}
   .screen.active{display:block;}
 
+  /* ---------- iPhone status bar + notch ---------- */
+  .statusbar{ position:absolute; top:0; left:0; right:0; height:38px; z-index:40;
+    display:flex; align-items:center; justify-content:space-between; padding:0 24px;
+    color:#fff; font-size:14px; font-weight:700; pointer-events:none;
+    font-family:-apple-system,"SF Pro Text",system-ui,sans-serif;
+    text-shadow:0 1px 2px rgba(0,0,0,.4);
+    background:linear-gradient(180deg,rgba(0,0,0,.22),rgba(0,0,0,0)); }
+  .sb-time{ letter-spacing:.3px; min-width:42px; padding-top:2px; }
+  .notch{ position:absolute; left:50%; top:8px; transform:translateX(-50%);
+    width:92px; height:27px; background:#05070b; border-radius:16px;
+    box-shadow:inset 0 0 2px rgba(255,255,255,.06); }
+  .notch::after{ content:""; position:absolute; right:13px; top:50%; transform:translateY(-50%);
+    width:8px; height:8px; border-radius:50%; background:radial-gradient(circle at 35% 30%,#41506e,#0a0e16 72%); }
+  .sb-right{ display:flex; align-items:center; gap:6px; padding-top:2px; }
+  .sb-bars{ display:flex; align-items:flex-end; gap:2px; height:12px; }
+  .sb-bars i{ width:3px; background:#fff; border-radius:1px; }
+  .sb-bars i:nth-child(1){ height:4px; } .sb-bars i:nth-child(2){ height:6px; }
+  .sb-bars i:nth-child(3){ height:9px; } .sb-bars i:nth-child(4){ height:12px; }
+  .sb-5g{ font-size:12px; font-weight:700; }
+  .sb-batt{ width:23px; height:12px; border:1.4px solid rgba(255,255,255,.85); border-radius:3px;
+    position:relative; padding:1.5px; box-sizing:border-box; }
+  .sb-batt::after{ content:""; position:absolute; right:-3px; top:50%; transform:translateY(-50%);
+    width:2px; height:4px; background:rgba(255,255,255,.85); border-radius:0 1px 1px 0; }
+  .sb-batt i{ display:block; height:100%; width:82%; background:#4cd07a; border-radius:1px; }
+
   /* ---------- Title ---------- */
   #title{
     background:radial-gradient(120% 90% at 50% 0%,#3aa0ff 0%,#1f5fd0 45%,#13357a 100%);
@@ -48,7 +73,7 @@
   /* ---------- Select ---------- */
   #select{
     background:linear-gradient(160deg,#1a2b4a,#0e1726);
-    padding:18px; color:#eaf0ff;
+    padding:44px 16px 16px; color:#eaf0ff;
   }
   #select.active{ display:flex; flex-direction:column; }
   .create-cta{ align-self:center; margin-bottom:12px; padding:9px 18px; cursor:pointer;
@@ -57,7 +82,7 @@
   .create-cta:active{ transform:translateY(2px); box-shadow:0 2px 0 #b8761f; }
 
   /* ---------- Create a Pirate ---------- */
-  #create{ background:linear-gradient(160deg,#2a1f3a,#14101e); color:#eee; padding:16px 14px 26px; }
+  #create{ background:linear-gradient(160deg,#2a1f3a,#14101e); color:#eee; padding:44px 14px 26px; }
   #create.active{ display:flex; flex-direction:column; align-items:center;
     justify-content:flex-start; overflow-y:auto; }
   .create-form{ margin-top:auto; margin-bottom:auto; }
@@ -146,7 +171,7 @@
   .me-plat{left:6%; bottom:40%; width:56%; height:6%;}
 
   .sprite{position:absolute; image-rendering:pixelated; transition:transform .25s, opacity .25s;}
-  #foeSprite{right:10%; top:9%; width:42%;}
+  #foeSprite{right:10%; top:12%; width:42%;}
   #meSprite{left:8%; bottom:42%; width:48%; transform:scaleX(-1);}
   #fxCanvas{position:absolute; inset:0; width:100%; height:100%;
     pointer-events:none; z-index:20; image-rendering:pixelated;}
@@ -158,7 +183,7 @@
   .plate{position:absolute; background:var(--panel); border:3px solid var(--panel-edge);
     border-radius:10px; padding:7px 10px 8px; width:42%; box-shadow:3px 3px 0 rgba(0,0,0,.18);}
   .plate{width:54%;}
-  .foe-plate{left:5%; top:4%;}
+  .foe-plate{left:5%; top:6%;}
   .me-plate{right:5%; bottom:40%;}
   .plate .row1{display:flex; justify-content:space-between; align-items:baseline;}
   .plate .pname{font-weight:bold; font-size:clamp(11px,2.2vw,15px);}
@@ -211,7 +236,7 @@
     box-shadow:0 0 0 4px #ffd23f, 0 14px 40px rgba(0,0,0,.5);}
   .toast.show{display:block;}
 
-  #muteBtn{position:absolute; top:10px; right:12px; z-index:50;
+  #muteBtn{position:absolute; top:44px; right:12px; z-index:50;
     width:36px; height:36px; border:none; border-radius:9px; cursor:pointer;
     background:rgba(12,18,30,.55); font-size:18px; line-height:1;
     display:flex; align-items:center; justify-content:center;
@@ -222,6 +247,15 @@
 </head>
 <body>
 <div id="stage">
+  <div class="statusbar">
+    <span class="sb-time">9:41</span>
+    <div class="notch"></div>
+    <span class="sb-right">
+      <span class="sb-bars"><i></i><i></i><i></i><i></i></span>
+      <span class="sb-5g">5G</span>
+      <span class="sb-batt"><i></i></span>
+    </span>
+  </div>
   <button id="muteBtn" title="Toggle music">🔊</button>
 
   <!-- TITLE -->
