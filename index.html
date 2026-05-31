@@ -4,25 +4,32 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
 <title>Grand Line Battle — One Piece × Pokémon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Russo+One&family=Mochiy+Pop+One&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#20283a; --panel:#fbfbf3; --panel-edge:#3a4a63;
+    --ink:#20283a; --panel:#fffdf4; --panel-edge:#15101c;
     --hp-green:#4cd07a; --hp-yellow:#f4c150; --hp-red:#e85c5c;
-    --accent:#2a6df4;
+    --accent:#ff5a3c;
+    --font-display:"Bangers","Russo One",system-ui,sans-serif; /* manga impact */
+    --font-ui:"Russo One","Mochiy Pop One",system-ui,sans-serif; /* bold anime UI */
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   html,body{height:100%;}
   body{
-    font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;
+    font-family:var(--font-ui);
     background:#0c1018;
     display:flex; align-items:center; justify-content:center;
     min-height:100vh; color:var(--ink);
     -webkit-font-smoothing:antialiased;
   }
+  /* manga-style outlined display text */
+  .manga{ font-family:var(--font-display); letter-spacing:1.5px; font-weight:400;
+    -webkit-text-stroke:2.5px #15101c; paint-order:stroke fill;
+    text-shadow:4px 4px 0 #15101c, 0 0 18px rgba(255,120,40,.35); }
   #stage{
-    position:fixed; inset:0;
-    width:100vw; width:100dvw;
-    height:100vh; height:100dvh;
+    position:fixed; inset:0;          /* fills the viewport exactly, no scrollbar overflow */
     background:#11161f; overflow:hidden; user-select:none;
   }
   .screen{position:absolute; inset:0; display:none;}
@@ -31,17 +38,32 @@
 
   /* ---------- Title ---------- */
   #title{
-    background:radial-gradient(120% 90% at 50% 0%,#3aa0ff 0%,#1f5fd0 45%,#13357a 100%);
+    background:radial-gradient(120% 90% at 50% 0%,#3aa0ff 0%,#1f5fd0 45%,#0d2a66 100%);
     display:none; flex-direction:column; align-items:center; justify-content:center;
-    text-align:center; color:#fff; gap:18px;
+    text-align:center; color:#fff; gap:20px; overflow:hidden;
   }
   #title.active{display:flex;}
-  #title h1{font-size:clamp(28px,6vw,54px); letter-spacing:1px; text-shadow:3px 3px 0 #0b2a66;}
-  #title .sub{opacity:.92; font-size:clamp(13px,2.4vw,18px); max-width:80%;}
-  .press{margin-top:10px; padding:14px 28px; font-size:18px; cursor:pointer;
-    background:#ffd23f; color:#5a3b00; border:none; border-radius:10px; font-weight:bold;
-    box-shadow:0 5px 0 #b88a00; transition:transform .06s;}
-  .press:active{transform:translateY(3px); box-shadow:0 2px 0 #b88a00;}
+  /* radiating manga "action lines" behind the title */
+  #title::before{ content:""; position:absolute; inset:-30% ; z-index:0;
+    background:repeating-conic-gradient(from 0deg at 50% 42%,
+      rgba(255,255,255,.10) 0deg 5deg, rgba(255,255,255,0) 5deg 11deg);
+    animation:spinRays 28s linear infinite; }
+  #title::after{ content:""; position:absolute; inset:0; z-index:0;
+    background:radial-gradient(60% 50% at 50% 42%, rgba(0,0,0,0) 40%, rgba(8,18,46,.55) 100%); }
+  @keyframes spinRays{ to{ transform:rotate(360deg); } }
+  #title h1{ position:relative; z-index:1; font-size:clamp(34px,9vw,72px); line-height:.95;
+    transform:rotate(-2deg); }
+  #title h1 .pop{ color:#ffd23f; display:inline-block; }
+  #title .sub{ position:relative; z-index:1; opacity:.95; font-size:clamp(12px,2.6vw,17px);
+    max-width:84%; font-family:var(--font-ui); letter-spacing:.5px;
+    text-shadow:1px 1px 0 #0b2a66; }
+  .press{ position:relative; z-index:1; margin-top:6px; padding:14px 32px; font-size:22px; cursor:pointer;
+    font-family:var(--font-display); letter-spacing:1.5px; color:#5a2a00;
+    background:linear-gradient(180deg,#ffe066,#ffae2e); border:3px solid #15101c; border-radius:12px;
+    box-shadow:0 6px 0 #15101c, 0 0 22px rgba(255,200,60,.5);
+    transition:transform .08s; animation:pressPulse 1.4s ease-in-out infinite; }
+  .press:active{transform:translateY(4px); box-shadow:0 2px 0 #15101c;}
+  @keyframes pressPulse{ 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
 
   /* ---------- Select ---------- */
   #select{
@@ -86,7 +108,7 @@
     border:6px solid #b89a5a; border-radius:4px; padding:8px 10px 6px; color:#3a2a14;
     box-shadow:0 12px 30px rgba(0,0,0,.5); font-family:"Georgia","Times New Roman",serif; text-align:center;
     background-image:radial-gradient(rgba(120,90,40,.12) 1px, transparent 1px); background-size:5px 5px; }
-  .poster-top{ font-size:34px; font-weight:900; letter-spacing:2px; line-height:1; }
+  .poster-top{ font-family:var(--font-display); font-size:42px; letter-spacing:3px; line-height:1; }
   .poster-frame{ margin:5px 0; border:3px solid #3a2a14; background:#cbb988; }
   .poster-frame canvas{ width:100%; display:block; image-rendering:pixelated; }
   .poster-doa{ font-size:13px; font-weight:bold; letter-spacing:1px; border-top:2px solid #3a2a14;
@@ -117,20 +139,22 @@
   .btn-fight{ flex:1; padding:10px; border:none; border-radius:9px; cursor:pointer; font-weight:bold;
     background:linear-gradient(180deg,#e85c5c,#c0392b); color:#fff; box-shadow:0 4px 0 #8a2820; font-size:13px; }
   .btn-fight:active{ transform:translateY(2px); box-shadow:0 2px 0 #8a2820; }
-  #select h2{text-align:center; font-size:clamp(16px,3vw,24px); margin-bottom:4px; color:#ffd23f;}
-  #select p.hint{text-align:center; font-size:12px; opacity:.7; margin-bottom:12px;}
+  #select h2{text-align:center; font-size:clamp(22px,5vw,34px); margin-bottom:6px; color:#ffd23f;}
+  #select p.hint{text-align:center; font-size:12px; opacity:.75; margin-bottom:12px; letter-spacing:.4px;}
   .roster{
     flex:1; display:grid; grid-template-columns:repeat(auto-fill,minmax(96px,1fr)); gap:8px;
     overflow-y:auto; align-content:start;
   }
   .card{
-    background:#22304d; border:2px solid #34466b; border-radius:10px;
+    background:linear-gradient(165deg,#26365a,#1a2540); border:2.5px solid #15101c; border-radius:12px;
     display:flex; flex-direction:column; align-items:center; padding:8px 4px 6px;
-    cursor:pointer; transition:transform .08s, border-color .08s, background .08s;
+    cursor:pointer; transition:transform .1s, border-color .1s, box-shadow .1s;
+    box-shadow:0 3px 0 #15101c;
   }
-  .card:hover{transform:translateY(-3px); border-color:#ffd23f; background:#2b3c61;}
+  .card:hover{transform:translateY(-4px) rotate(-1deg); border-color:#ffd23f;
+    box-shadow:0 6px 0 #15101c, 0 0 18px rgba(255,210,60,.45);}
   .card canvas{width:72px; height:72px; image-rendering:pixelated;}
-  .card .nm{font-size:12px; font-weight:bold; margin-top:2px;}
+  .card .nm{font-size:13px; margin-top:3px; letter-spacing:.4px;}
   .card .role{font-size:9px; opacity:.6;}
 
   /* ---------- Battle ---------- */
@@ -171,16 +195,17 @@
   /* bottom UI */
   .ui{position:absolute; left:0; right:0; bottom:0; height:36%; display:flex; flex-direction:column; gap:0;}
   .textbox{flex:1; margin:10px 10px 5px; background:var(--panel); border:4px solid var(--panel-edge);
-    border-radius:12px; padding:12px 14px; font-size:clamp(13px,3.6vw,17px);
-    line-height:1.4; display:flex; align-items:center; min-height:62px;}
+    border-radius:14px; padding:12px 14px; font-size:clamp(13px,3.6vw,17px);
+    line-height:1.4; display:flex; align-items:center; min-height:62px;
+    box-shadow:0 4px 0 var(--panel-edge); letter-spacing:.3px;}
   .menu{flex:1.3; margin:0 10px 10px; display:none; grid-template-columns:1fr 1fr; grid-auto-rows:1fr; gap:8px;}
   .menu.show{display:grid;}
-  .move{background:var(--panel); border:3px solid var(--panel-edge); border-radius:10px;
-    cursor:pointer; font-weight:bold; font-size:clamp(11px,2.2vw,15px);
+  .move{background:linear-gradient(180deg,#fffef7,#f2eede); border:3px solid var(--panel-edge); border-radius:11px;
+    cursor:pointer; font-size:clamp(11px,2.2vw,15px); letter-spacing:.3px;
     display:flex; align-items:center; justify-content:center; text-align:center; padding:4px;
-    transition:background .08s, transform .06s;}
-  .move:hover{background:#ffe9a8;}
-  .move:active{transform:translateY(2px);}
+    box-shadow:0 3px 0 var(--panel-edge); transition:background .08s, transform .06s, box-shadow .06s;}
+  .move:hover{background:linear-gradient(180deg,#fff0b8,#ffe07a);}
+  .move:active{transform:translateY(3px); box-shadow:0 0 0 var(--panel-edge);}
   .move:disabled{opacity:.45; cursor:default; transform:none; background:var(--panel);}
   .move.locked{opacity:.5; font-style:italic; background:repeating-linear-gradient(
     45deg,#ece9dd,#ece9dd 6px,#e0ddd0 6px,#e0ddd0 12px); color:#6a6a5a;}
@@ -272,14 +297,14 @@
 
   <!-- TITLE -->
   <div id="title" class="screen active">
-    <h1>⚓ GRAND LINE BATTLE ⚓</h1>
-    <div class="sub">A One Piece × Pokémon-style battle. Pick a Straw Hat, face a random rival, and duel turn-by-turn.</div>
-    <button class="press" id="startBtn">▶ PRESS START</button>
+    <h1 class="manga">⚓ GRAND<br><span class="pop">LINE BATTLE</span> ⚓</h1>
+    <div class="sub">An anime crossover battle — One Piece × Jujutsu Kaisen × Attack on Titan. Pick a fighter, face a rival, and duel!</div>
+    <button class="press" id="startBtn">PRESS START</button>
   </div>
 
   <!-- SELECT -->
   <div id="select" class="screen">
-    <h2>CHOOSE YOUR FIGHTER</h2>
+    <h2 class="manga">CHOOSE YOUR FIGHTER</h2>
     <p class="hint">Your pick battles a random rival — or forge your own pirate.</p>
     <button id="createCta" class="create-cta">✍️ Create Your Own Pirate</button>
     <div class="roster" id="roster"></div>
@@ -288,7 +313,7 @@
   <!-- CREATE A PIRATE -->
   <div id="create" class="screen">
     <div class="create-form" id="createForm">
-      <h2>⚓ CREATE YOUR PIRATE</h2>
+      <h2 class="manga">CREATE YOUR PIRATE</h2>
       <label>Pirate Name
         <input id="inName" maxlength="18" placeholder="e.g. Crimson Jack" autocomplete="off"></label>
       <label>Devil Fruit
@@ -851,39 +876,28 @@ function noteFreq(name){
   return 440*Math.pow(2,(midi-69)/12);
 }
 
-// ---- the song: chiptune transcription of the One Piece OP1 hook ----
-// D major, ~178bpm. Signature shape: fast repeated-note pickups that
-// leap up into a sustained hook, then a stepwise descent. (Transcribed
-// by ear from the melody's contour, not from a score.)
+// ---- MENU theme: original bright, relaxed F-major "overworld" tune (~150bpm) ----
+// Deliberately calm/bouncy so it contrasts hard with the fast minor battle theme.
 const SONG=(()=>{
   const lead=[
-    // verse phrase 1 — driving repeated pickups, settle down
-    ["A4",.5],["A4",.5],["A4",.5],["A4",.5],["B4",.5],["A4",.5],["F#4",1],
-    // phrase 1 answer
-    ["A4",.5],["A4",.5],["A4",.5],["B4",.5],["A4",.5],["F#4",.5],["E4",1],
-    // phrase 2 — the rise to the hook
-    ["F#4",.5],["A4",.5],["D5",1],["D5",.5],["C#5",.5],["B4",1],
-    // phrase 2 answer — stepwise descent
-    ["A4",.5],["B4",.5],["A4",1],["F#4",.5],["E4",.5],["D4",1],
-    // pre-hook lift
-    ["D5",.5],["D5",.5],["E5",1],["D5",.5],["B4",.5],["A4",1],
-    ["B4",.5],["B4",.5],["D5",1],["C#5",.5],["B4",.5],["A4",1],
-    // THE HOOK — big sustained shout
-    ["D5",1],["E5",1],["F#5",1],["E5",1],
-    // resolve / turnaround
-    ["D5",1],["A4",1],["B4",1],["A4",1],
+    ["C5",1],["A4",.5],["C5",.5],["F5",1],["E5",1],
+    ["D5",.5],["C5",.5],["D5",1],["C5",.5],["A4",.5],["G4",1],
+    ["A4",1],["C5",.5],["F5",.5],["G5",1],["F5",1],
+    ["E5",.5],["D5",.5],["C5",1],["A4",.5],["G4",.5],["F4",1],
+    ["A4",.5],["A4",.5],["C5",1],["F5",.5],["E5",.5],["D5",1],
+    ["G4",.5],["B4",.5],["D5",1],["C5",.5],["A4",.5],["C5",1],
+    ["F5",1],["E5",.5],["D5",.5],["C5",1],["A4",1],
+    ["G4",.5],["A4",.5],["B4",.5],["C5",.5],["F5",1],["F5",1],
   ];
-  const roots=["D2","A2","B2","G2","D2","A2","G2","A2"]; // D A Bm G | D A G A
-  const bass=[];
-  roots.forEach(r=>{ for(let i=0;i<8;i++) bass.push([r,.5]); }); // driving 8ths
+  const roots=["F2","C2","D2","A#2","F2","A2","A#2","C2"]; // F C Dm Bb | F Am Bb C
+  const bass=[]; roots.forEach(r=>{ for(let i=0;i<8;i++) bass.push([r,.5]); });
   const chordTones={
-    D2:["F#4","A4","D5"], A2:["E4","A4","C#5"],
-    B2:["F#4","B4","D5"], G2:["G4","B4","D5"]
+    F2:["A4","C5","F5"], C2:["E4","G4","C5"], D2:["F4","A4","D5"],
+    "A#2":["D4","F4","A#4"], A2:["A4","C5","E5"]
   };
-  const harm=[];
-  roots.forEach(r=>{ const t=chordTones[r]; for(let i=0;i<8;i++) harm.push([t[i%3],.5]); });
+  const harm=[]; roots.forEach(r=>{ const t=chordTones[r]; for(let i=0;i<8;i++) harm.push([t[i%3],.5]); });
   const total=lead.reduce((s,n)=>s+n[1],0); // 32 beats
-  return {bpm:178, lead, bass, harm, totalBeats:total, bars:8, drive:"punk"};
+  return {bpm:150, lead, bass, harm, totalBeats:total, bars:8, drive:"calm"};
 })();
 
 // ---- BATTLE theme: original tense, driving E-minor chiptune (~188bpm) ----
@@ -964,9 +978,10 @@ function scheduleSong(at){
     for(let e=0;e<8;e++){
       const t=at+(bar*8+e)*eighth;
       if(e===0||e===4) drumHit(t,"kick");
-      if(e===2||e===6) drumHit(t,"snare");
-      // battle theme rides a busier hat groove
-      if(song.drive==="rock"||e%2===0) drumHit(t,"hat");
+      // calm menu theme: no snare backbeat, gentle offbeat hats; battle: full busy groove
+      if(song.drive!=="calm" && (e===2||e===6)) drumHit(t,"snare");
+      const hat = song.drive==="rock" ? true : song.drive==="calm" ? (e%2===1) : (e%2===0);
+      if(hat) drumHit(t,"hat");
     }
   }
 }
