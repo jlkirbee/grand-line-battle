@@ -289,7 +289,7 @@ const CHARS = [
     moves:[
       {n:"Lapse: Blue",p:64,fx:"orb",c:"#4aa0ff"},
       {n:"Reversal: Red",p:70,fx:"orbRed",c:"#ff4a4a"},
-      {n:"Hollow Purple",p:92,fx:"beam",c:"#a64ad0"},
+      {n:"Hollow Purple",p:92,fx:"hollow",c:"#a64ad0"},
       {n:"Unlimited Void",p:80,fx:"domain",c:"#6a8aff"} ] },
 
   { id:"yuji", name:"YUJI", role:"Vessel", series:"Jujutsu Kaisen",
@@ -1163,7 +1163,26 @@ function fxSpear(c,p,col,s,d,W,H){
   else{ const t=(p-0.5)/0.5, a=1-t, r=H*0.05+t*H*0.22; gdot(c,d.x,d.y,r,col,a); gdot(c,d.x,d.y,r*0.6,"#fff",a*0.8);
     for(let i=0;i<8;i++){ const ang=i*0.78; gline(c,d.x,d.y,d.x+Math.cos(ang)*r,d.y+Math.sin(ang)*r,H*0.01,col,a); } } }
 
+function fxHollow(c,p,col,s,d,W,H){ c.save(); c.globalCompositeOperation="lighter";
+  const blue="#3a7aff", red="#ff3a4a", purple="#a64ad0";
+  if(p<0.4){ // Lapse: Blue + Reversal: Red orbs drawing together at the caster
+    const t=p/0.4, sep=W*0.09*(1-t)+W*0.015, r=H*0.05+H*0.012*Math.sin(p*30);
+    gdot(c,s.x-sep,s.y,r,blue,0.95); gdot(c,s.x-sep,s.y,r*1.7,blue,0.3);
+    gdot(c,s.x+sep,s.y,r,red,0.95);  gdot(c,s.x+sep,s.y,r*1.7,red,0.3);
+    if(t>0.5) gline(c,s.x-sep,s.y,s.x+sep,s.y,H*0.01,"#fff",(t-0.5)*1.2);
+  } else if(p<0.55){ // collision flash -> purple forms
+    const t=(p-0.4)/0.15; gdot(c,s.x,s.y,H*0.2*(0.4+t),"#fff",1-t*0.3); gdot(c,s.x,s.y,H*0.11,purple,1);
+  } else { // big purple energy ball travels and erases the target
+    const t=(p-0.55)/0.45, e=lerp(s,d,Math.min(1,t/0.7)), R=H*0.11+H*0.035*Math.sin(p*22);
+    gdot(c,e.x,e.y,R*1.6,purple,0.4); gdot(c,e.x,e.y,R,purple,0.95); gdot(c,e.x,e.y,R*0.5,"#e8b0ff",0.95);
+    c.globalAlpha=0.7; c.strokeStyle="#d8a8ff"; c.lineWidth=H*0.008;
+    c.beginPath(); c.arc(e.x,e.y,R*0.8,p*10,p*10+4); c.stroke();
+    if(t>0.7){ const a=(t-0.7)/0.3; gdot(c,d.x,d.y,R*(1+a*1.6),purple,1-a);
+      for(let i=0;i<8;i++){ const ang=i*0.78; gline(c,d.x,d.y,d.x+Math.cos(ang)*R*2*a,d.y+Math.sin(ang)*R*2*a,H*0.01,"#c080ff",1-a); } } }
+  c.restore(); }
+
 const FX={
+  hollow:fxHollow,
   slash:(c,p,col,s,d,W,H)=>fxSlash(c,p,col,d,1,W,H),
   slash3:(c,p,col,s,d,W,H)=>fxSlash(c,p,col,d,3,W,H),
   slash5:(c,p,col,s,d,W,H)=>fxSlash(c,p,col,d,5,W,H),
@@ -1186,7 +1205,7 @@ const FX={
 function animateFx(key,color,side){
   if(window.__FAST) return Promise.resolve();
   const fn=FX[key]||FX.impact, ctx=fxCtx(); fxSize();
-  const {src,dst,W,H}=fxAnchors(side), dur=key==="domain"?900:540;
+  const {src,dst,W,H}=fxAnchors(side), dur=key==="domain"?900:key==="hollow"?1050:540;
   return new Promise(res=>{
     const t0=performance.now();
     (function frame(now){
@@ -1224,11 +1243,14 @@ const SND={
   blip:(d,h)=>{ for(let i=0;i<5;i++){ const t=actx.currentTime+i*0.04; aTone(1200+(h%5)*100-i*80,null,t,0.04,"square",0.06); } },
   shield:()=>{ const t=actx.currentTime; aTone(900,1300,t,0.1,"triangle",0.08); aTone(1300,null,t+0.08,0.18,"triangle",0.06); },
   boom:()=>{ const t=actx.currentTime; aTone(70,30,t,0.7,"square",0.2); aTone(400,120,t,0.5,"sawtooth",0.06); aNoise(t,0.5,"lowpass",300,0.1); },
+  hollow:()=>{ const t=actx.currentTime; // blue + red charge converging, then erasing boom
+    aTone(280,720,t,0.42,"sine",0.07); aTone(1000,520,t,0.42,"sawtooth",0.06);
+    aTone(700,80,t+0.45,0.55,"square",0.18); aTone(380,90,t+0.45,0.5,"sawtooth",0.07); aNoise(t+0.45,0.55,"lowpass",420,0.12); },
 };
 const SND_FAMILY={ slash:"swipe",slash3:"swipe",slash5:"swipe",odm:"swipe",odmspin:"swipe",claw:"swipe",claw3:"swipe",bite:"swipe",
   punch:"thud",kick:"thud",impact:"thud",flurry:"flurry",titan:"quake",
   fire:"fire",steam:"air",wind:"air",spark:"shimmer",
-  beam:"beam",orb:"beam",orbRed:"beam",spear:"beam",
+  beam:"beam",orb:"beam",orbRed:"beam",spear:"beam",hollow:"hollow",
   lightning:"zap",blackflash:"crack",shadow:"dark",net:"dark",
   projectile:"blip",nails:"blip",shield:"shield",domain:"boom" };
 function playMoveSound(key,name){
@@ -1306,7 +1328,7 @@ async function doAttack(side,mv){
   // unique attack effect + sound for this move
   playMoveSound(fxKey,mvName);
   const fxDone = animateFx(fxKey,color,side);
-  await wait(fxKey==="domain"?420:200); // let the effect travel/land
+  await wait(fxKey==="domain"?420:fxKey==="hollow"?760:200); // let the effect travel/land
   if(crit) sfx.crit();
   defSpr.classList.add("flash"); defSpr.classList.add("shake");
 
