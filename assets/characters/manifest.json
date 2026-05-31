@@ -1,0 +1,135 @@
+{
+  "luffy": {
+    "src": "assets/characters/luffy/sheet.png",
+    "frameWidth": 128,
+    "frameHeight": 72,
+    "facing": "right",
+    "frames": { "idle": 0, "idle2": 1, "attack": 2, "attack2": 3, "hurt": 4, "faint": 5 }
+  },
+  "zoro": {
+    "src": "assets/characters/zoro/sheet.png",
+    "frameWidth": 128,
+    "frameHeight": 72,
+    "facing": "right",
+    "frames": { "idle": 0, "idle2": 1, "attack": 2, "attack2": 3, "hurt": 4, "faint": 5 }
+  },
+  "nami": {
+    "src": "assets/characters/nami/sheet.png",
+    "frameWidth": 128,
+    "frameHeight": 72,
+    "facing": "right",
+    "frames": { "idle": 0, "idle2": 1, "attack": 2, "attack2": 3, "hurt": 4, "faint": 5 }
+  },
+  "sanji": {
+    "src": "assets/characters/sanji/sheet.png",
+    "frameWidth": 128,
+    "frameHeight": 72,
+    "facing": "right",
+    "frames": { "idle": 0, "idle2": 1, "attack": 2, "attack2": 3, "hurt": 4, "faint": 5 }
+  },
+  "usopp": {
+    "src": "assets/characters/usopp/sheet.png",
+    "frameWidth": 128,
+    "frameHeight": 72,
+    "facing": "right",
+    "frames": { "idle": 0, "idle2": 1, "attack": 2, "attack2": 3, "hurt": 4, "faint": 5 }
+  },
+  "chopper": {
+    "src": "assets/characters/chopper/sheet.png",
+    "frameWidth": 128,
+    "frameHeight": 72,
+    "facing": "right",
+    "frames": { "idle": 0, "idle2": 1, "attack": 2, "attack2": 3, "hurt": 4, "faint": 5 }
+  },
+  "robin": {
+    "src": "assets/characters/robin/sheet.png",
+    "frameWidth": 128,
+    "frameHeight": 72,
+    "facing": "right",
+    "frames": { "idle": 0, "idle2": 1, "attack": 2, "attack2": 3, "hurt": 4, "faint": 5 }
+  },
+  "franky": {
+    "src": "assets/characters/franky/sheet.png",
+    "frameWidth": 128,
+    "frameHeight": 72,
+    "facing": "right",
+    "frames": { "idle": 0, "idle2": 1, "attack": 2, "attack2": 3, "hurt": 4, "faint": 5 }
+  },
+  "brook": {
+    "src": "assets/characters/brook/sheet.png",
+    "frameWidth": 128,
+    "frameHeight": 72,
+    "facing": "right",
+    "frames": { "idle": 0, "idle2": 1, "attack": 2, "attack2": 3, "hurt": 4, "faint": 5 }
+  },
+  "gojo": {
+    "src": "assets/characters/gojo/sheet.png",
+    "frameWidth": 128,
+    "frameHeight": 72,
+    "facing": "right",
+    "frames": { "idle": 0, "idle2": 1, "attack": 2, "attack2": 3, "hurt": 4, "faint": 5 }
+  },
+  "yuji": {
+    "src": "assets/characters/yuji/sheet.png",
+    "frameWidth": 128,
+    "frameHeight": 72,
+    "facing": "right",
+    "frames": { "idle": 0, "idle2": 1, "attack": 2, "attack2": 3, "hurt": 4, "faint": 5 }
+  },
+  "megumi": {
+    "src": "assets/characters/megumi/sheet.png",
+    "frameWidth": 128,
+    "frameHeight": 72,
+    "facing": "right",
+    "frames": { "idle": 0, "idle2": 1, "attack": 2, "attack2": 3, "hurt": 4, "faint": 5 }
+  },
+  "nobara": {
+    "src": "assets/characters/nobara/sheet.png",
+    "frameWidth": 128,
+    "frameHeight": 72,
+    "facing": "right",
+    "frames": { "idle": 0, "idle2": 1, "attack": 2, "attack2": 3, "hurt": 4, "faint": 5 }
+  },
+  "sukuna": {
+    "src": "assets/characters/sukuna/sheet.png",
+    "frameWidth": 128,
+    "frameHeight": 72,
+    "facing": "right",
+    "frames": { "idle": 0, "idle2": 1, "attack": 2, "attack2": 3, "hurt": 4, "faint": 5 }
+  },
+  "eren": {
+    "src": "assets/characters/eren/sheet.png",
+    "frameWidth": 128,
+    "frameHeight": 72,
+    "facing": "right",
+    "frames": { "idle": 0, "idle2": 1, "attack": 2, "attack2": 3, "hurt": 4, "faint": 5 }
+  },
+  "mikasa": {
+    "src": "assets/characters/mikasa/sheet.png",
+    "frameWidth": 128,
+    "frameHeight": 72,
+    "facing": "right",
+    "frames": { "idle": 0, "idle2": 1, "attack": 2, "attack2": 3, "hurt": 4, "faint": 5 }
+  },
+  "levi": {
+    "src": "assets/characters/levi/sheet.png",
+    "frameWidth": 128,
+    "frameHeight": 72,
+    "facing": "right",
+    "frames": { "idle": 0, "idle2": 1, "attack": 2, "attack2": 3, "hurt": 4, "faint": 5 }
+  },
+  "armin": {
+    "src": "assets/characters/armin/sheet.png",
+    "frameWidth": 128,
+    "frameHeight": 72,
+    "facing": "right",
+    "frames": { "idle": 0, "idle2": 1, "attack": 2, "attack2": 3, "hurt": 4, "faint": 5 }
+  },
+  "titan": {
+    "src": "assets/characters/titan/sheet.png",
+    "frameWidth": 128,
+    "frameHeight": 72,
+    "facing": "right",
+    "frames": { "idle": 0, "idle2": 1, "attack": 2, "attack2": 3, "hurt": 4, "faint": 5 }
+  }
+}

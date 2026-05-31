@@ -20,8 +20,8 @@ The whole game (every screen, sprite, effect, and sound) should obey this docume
    palette below. No smooth photographic gradients on sprites — use **dithering** instead.
 4. **Bold readable shapes.** Chibi proportions (big head, short body), 1px dark outline,
    strong silhouettes that read at small sizes.
-5. **CRT feel.** A faint global scanline + vignette overlay sits over everything
-   ("faint but visible"), selling the retro-console screen.
+5. **Clean pixel presentation.** Keep the retro-console look through hard pixels,
+   palette, dithering, and UI shapes — no global CRT scanlines or vignette overlay.
 
 ---
 
@@ -30,7 +30,7 @@ The whole game (every screen, sprite, effect, and sound) should obey this docume
 | Thing | Spec |
 |---|---|
 | Tile size | **16×16 px** logical (environment tiles ship as 2×2 = 32×32 blocks) |
-| Character sprite | **32×36 px** logical canvas, scaled up; feet on baseline |
+| Character sprite | **128×72 px** source frame for generated sheets; visible character stays chibi-scale with feet on baseline |
 | Character scale | **1:1 with the ship** in scene shots (crew ≈ ship deck height) |
 | Upscale | integer only; `image-rendering:pixelated`, `ctx.imageSmoothingEnabled=false` |
 | Logo | drawn at low res then upscaled ~×3–×4 for chunky pixel letters |
@@ -77,8 +77,12 @@ Use these; sample new colors from the same families. (Hex.)
 
 ## 4. Characters (sprite sheet & animation)
 
-- **Canvas:** 32×36 logical. **Outline:** 1px `#15101c` on the silhouette (goal — current
-  procedural sprites are flat; add outlines as we upgrade).
+- **Source frame:** every generated character sheet is exactly **6 frames × 128×72 px**
+  (`768×72` total). The full pose, including weapons, stretch attacks, hit sparks, and
+  faint/knockdown poses, must fit inside its own 128px-wide frame before import.
+- **Canvas:** source frames are downscaled/normalized into that 128×72 contract. **Outline:**
+  1px `#15101c` on the silhouette (goal — current procedural sprites are flat; add outlines as
+  we upgrade).
 - **Proportions:** chibi — head ≈ 40% of height, stubby limbs, expressive face (2px eyes).
 - **Color budget:** ≤32 colors/sprite, dithered shading (no soft gradients).
 - **Signature read:** each fighter identifiable by silhouette + one signature feature
@@ -124,12 +128,12 @@ Use these; sample new colors from the same families. (Hex.)
 
 ---
 
-## 8. CRT / post-processing
+## 8. Post-processing
 
-- **Scanlines:** horizontal 1px dark lines every 3px, ~15% black (`#stage::after`).
-- **Vignette:** radial corner darken ~38%.
-- **Optional (off by default):** subtle RGB fringe / rolling flicker — only if it stays
-  "faint but visible" and never hurts readability.
+- **Global screen filters:** off. Do not use CRT scanlines, rolling lines, global fade
+  bands, vignette, RGB fringe, or other overlays that sit on top of the whole game.
+- **Allowed polish:** local, move-specific pixel FX and hard-edged UI shadows.
+- **Readability rule:** the base artwork and UI should stay clean and inspectable.
 
 ---
 
@@ -146,7 +150,7 @@ Use these; sample new colors from the same families. (Hex.)
 ## 10. Do / Don't
 
 **Do:** integer scale · limited palette · dither for shading · 1px outlines · bold silhouettes
-· short pixel-font lines · hard shadows · CRT overlay on.
+· short pixel-font lines · hard shadows · clean screens without CRT overlays.
 
 **Don't:** anti-aliased sprite edges · soft photographic gradients on sprites · sub-pixel
 drift · tiny unreadable detail · smooth (bilinear) image scaling · mixing non-pixel fonts
@@ -164,20 +168,21 @@ into the game UI.
 | Title harbor scene | `drawTitle()`, `drawShip()`, `drawIsland()` |
 | Pixel logo | `drawPixelLogo()` |
 | Fonts | `--font-display`, `--font-ui`, `--font-pixel` |
-| CRT overlay | `#stage::after` |
+| Post-processing | No global overlay; keep effects local to moves/UI |
 | Music / SFX | `SONG`, `BATTLE_SONG`, `scheduleSong()`, `SND`, `sfx` |
 
 ---
 
 ## 12. Adding real PNG art later (highest fidelity path)
 
-The game is currently **100% code-drawn** (no image files). To reach hand-crafted fidelity:
+The game is now a hybrid: code-drawn fallback sprites plus real PNG sheets for upgraded
+characters. To keep hand-crafted fidelity consistent:
 
 1. Drop pixel-art files into `/assets` (background scenes + character **sprite sheets**).
 2. Load with `new Image()`; draw with `ctx.drawImage(...)`, keeping
    `imageSmoothingEnabled=false` and integer scaling.
 3. Replace a `DRAW.<id>` function with sheet-frame blitting (idle/attack/hurt frames).
-4. Author everything to this palette, 16px grid, and 32×36 sprite size so old and new art
-   stay consistent.
+4. Author every generated character sheet as **six 128×72 frames**. Nothing may cross a frame
+   boundary; run `python3 tools/validate_sprite_sheets.py` before wiring it in.
 
 This bible is the contract either way — procedural or asset-based, the *look* stays the same.

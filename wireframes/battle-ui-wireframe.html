@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grand Line Battle - Battle UI Wireframe</title>
+<style>
+  :root{
+    --ink:#15101c;
+    --paper:#fffdf4;
+    --paper-2:#f2e8cc;
+    --sea:#1c4f93;
+    --sea-dark:#0c2452;
+    --wood:#6a4a2a;
+    --wood-dark:#3a2414;
+    --gold:#ffd23f;
+    --red:#ff5a3c;
+    --green:#4cd07a;
+    --blue:#2c5fae;
+    --shadow:#070b22;
+    --font-pixel:"Press Start 2P","Courier New",monospace;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    min-height:100vh;
+    display:grid;
+    place-items:center;
+    background:#101623;
+    color:var(--ink);
+    font-family:var(--font-pixel);
+    image-rendering:pixelated;
+  }
+
+  .wireframe{
+    width:min(1120px,96vw);
+    aspect-ratio:16/9;
+    position:relative;
+    overflow:hidden;
+    background:
+      linear-gradient(180deg,#13306a 0 35%,var(--sea) 35% 62%,var(--wood) 62% 100%);
+    border:8px solid var(--ink);
+    box-shadow:8px 8px 0 #000;
+  }
+
+  .moon{position:absolute; right:11%; top:8%; width:7%; aspect-ratio:1; background:#fdf6e3; border:4px solid var(--ink)}
+  .horizon{position:absolute; left:0; right:0; top:35%; height:4px; background:#bfe4ff}
+  .wave{position:absolute; height:4px; background:#bfe4ff; opacity:.85}
+  .wave.w1{left:7%; top:43%; width:18%}
+  .wave.w2{right:20%; top:50%; width:25%}
+  .wave.w3{left:38%; top:55%; width:13%}
+  .dock-lines{
+    position:absolute; inset:62% 0 0;
+    background:
+      repeating-linear-gradient(90deg,transparent 0 82px,rgba(0,0,0,.28) 82px 86px),
+      repeating-linear-gradient(0deg,transparent 0 34px,rgba(255,235,200,.13) 34px 38px);
+  }
+
+  .fighter{
+    position:absolute;
+    width:15%;
+    aspect-ratio:8/9;
+    border:4px dashed rgba(21,16,28,.75);
+    background:rgba(255,253,244,.16);
+  }
+  .fighter::before{
+    content:"";
+    position:absolute;
+    left:50%;
+    bottom:8%;
+    width:36%;
+    height:54%;
+    transform:translateX(-50%);
+    background:rgba(255,253,244,.5);
+    border:4px solid var(--ink);
+    box-shadow:
+      -14px 18px 0 -6px rgba(255,253,244,.5),
+      14px 18px 0 -6px rgba(255,253,244,.5),
+      0 -20px 0 -4px rgba(255,253,244,.5);
+  }
+  .fighter.foe{right:13%; top:18%}
+  .fighter.me{left:12%; top:47%}
+  .platform{
+    position:absolute;
+    height:4%;
+    border:4px solid rgba(21,16,28,.85);
+    background:rgba(255,253,244,.22);
+  }
+  .platform.foe{right:10%; top:50%; width:26%}
+  .platform.me{left:8%; top:76%; width:31%}
+
+  .plate{
+    position:absolute;
+    width:35%;
+    padding:12px;
+    background:var(--paper);
+    border:6px solid var(--ink);
+    box-shadow:6px 6px 0 rgba(0,0,0,.35);
+  }
+  .plate.foe{left:5%; top:7%}
+  .plate.me{right:5%; top:56%}
+  .name-row{display:flex; justify-content:space-between; align-items:center; gap:12px; font-size:clamp(11px,1.45vw,16px)}
+  .lv{color:#5a523f}
+  .hp-row{display:grid; grid-template-columns:auto 1fr; gap:8px; align-items:center; margin-top:10px}
+  .hp-label{color:#d8a200; font-size:clamp(9px,1vw,11px)}
+  .hp-track{height:14px; background:#5a5a5a; border:3px solid var(--ink)}
+  .hp-fill{height:100%; width:74%; background:var(--green)}
+  .hp-num{text-align:right; margin-top:6px; font-size:clamp(8px,.9vw,10px); color:#5a523f}
+
+  .bottom-ui{
+    position:absolute;
+    left:4%;
+    right:4%;
+    bottom:4%;
+    height:26%;
+    display:grid;
+    grid-template-columns:1.18fr 1fr;
+    gap:14px;
+  }
+  .dialog,.moves{
+    background:var(--paper);
+    border:7px solid var(--ink);
+    box-shadow:6px 6px 0 rgba(0,0,0,.35);
+  }
+  .dialog{
+    padding:18px;
+    display:flex;
+    align-items:center;
+    font-size:clamp(12px,1.6vw,18px);
+    line-height:1.55;
+  }
+  .dialog::after{
+    content:"";
+    position:absolute;
+    left:calc(4% + 52%);
+    bottom:7%;
+    width:0;
+    height:0;
+    border-left:10px solid transparent;
+    border-right:10px solid transparent;
+    border-top:14px solid var(--red);
+  }
+  .moves{
+    padding:10px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    grid-template-rows:1fr 1fr;
+    gap:10px;
+  }
+  .move{
+    background:var(--paper-2);
+    border:5px solid var(--ink);
+    box-shadow:0 5px 0 var(--ink);
+    display:grid;
+    place-items:center;
+    text-align:center;
+    padding:8px;
+    font-size:clamp(8px,1.1vw,12px);
+  }
+  .move.primary{background:#fff0b8}
+
+  @media (max-width:760px){
+    .wireframe{aspect-ratio:9/16}
+    .plate{width:58%}
+    .plate.foe{left:5%; top:6%}
+    .plate.me{right:5%; top:50%}
+    .fighter.foe{right:11%; top:23%; width:27%}
+    .fighter.me{left:9%; top:48%; width:31%}
+    .platform.foe{right:7%; top:43%; width:42%}
+    .platform.me{left:6%; top:67%; width:48%}
+    .bottom-ui{height:30%; grid-template-columns:1fr; grid-template-rows:.78fr 1fr; gap:10px}
+  }
+</style>
+</head>
+<body>
+  <main class="wireframe" aria-label="Pokemon-style battle UI wireframe without CRT overlay">
+    <div class="moon"></div>
+    <div class="horizon"></div>
+    <div class="wave w1"></div>
+    <div class="wave w2"></div>
+    <div class="wave w3"></div>
+    <div class="dock-lines"></div>
+
+    <section class="plate foe" aria-label="Opponent status plate">
+      <div class="name-row"><strong>ZORO</strong><span class="lv">Lv50</span></div>
+      <div class="hp-row"><span class="hp-label">HP</span><div class="hp-track"><div class="hp-fill"></div></div></div>
+    </section>
+
+    <section class="plate me" aria-label="Player status plate">
+      <div class="name-row"><strong>LUFFY</strong><span class="lv">Lv50</span></div>
+      <div class="hp-row"><span class="hp-label">HP</span><div class="hp-track"><div class="hp-fill"></div></div></div>
+      <div class="hp-num">122 / 165</div>
+    </section>
+
+    <div class="platform foe"></div>
+    <div class="platform me"></div>
+    <div class="fighter foe"></div>
+    <div class="fighter me"></div>
+
+    <section class="bottom-ui">
+      <div class="dialog">What will LUFFY do?</div>
+      <nav class="moves" aria-label="Move menu">
+        <div class="move primary">GUM PISTOL</div>
+        <div class="move">GUM GATLING</div>
+        <div class="move">RED HAWK</div>
+        <div class="move">SPECIAL</div>
+      </nav>
+    </section>
+  </main>
+</body>
+</html>
