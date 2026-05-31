@@ -127,10 +127,19 @@
     font-size:clamp(18px,4vw,30px); font-weight:bold; text-align:center; display:none;
     box-shadow:0 0 0 4px #ffd23f, 0 14px 40px rgba(0,0,0,.5);}
   .toast.show{display:block;}
+
+  #muteBtn{position:absolute; top:10px; right:12px; z-index:50;
+    width:36px; height:36px; border:none; border-radius:9px; cursor:pointer;
+    background:rgba(12,18,30,.55); font-size:18px; line-height:1;
+    display:flex; align-items:center; justify-content:center;
+    transition:background .12s, transform .06s;}
+  #muteBtn:hover{background:rgba(12,18,30,.8);}
+  #muteBtn:active{transform:scale(.92);}
 </style>
 </head>
 <body>
 <div id="stage">
+  <button id="muteBtn" title="Toggle music">🔊</button>
 
   <!-- TITLE -->
   <div id="title" class="screen active">
@@ -386,9 +395,14 @@ function renderChar(canvas,ch){
    AUDIO  (tiny WebAudio blips — no asset files)
    ============================================================ */
 let actx=null;
+function ensureCtx(){
+  actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+  if(actx.state==="suspended") actx.resume();
+  return actx;
+}
 function beep(freq,dur,type="square",vol=.04){
   try{
-    actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    ensureCtx();
     const o=actx.createOscillator(), g=actx.createGain();
     o.type=type; o.frequency.value=freq; o.connect(g); g.connect(actx.destination);
     g.gain.value=vol; o.start();
@@ -404,6 +418,145 @@ const sfx={
   win:()=>{[523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,.16,"square",.05),i*120));},
   select:()=>beep(880,.06,"square",.04),
 };
+
+/* ============================================================
+   CHIPTUNE MUSIC ENGINE  (Game Boy 4-channel style, no assets)
+   Pulse lead + pulse harmony + triangle bass + noise drums.
+   Track: an 8-bit interpretation of the One Piece OP "We Are!".
+   ============================================================ */
+function noteFreq(name){
+  if(!name||name==="-") return 0;
+  const m=/^([A-G])(#|b)?(\d)$/.exec(name);
+  if(!m) return 0;
+  const base={C:0,D:2,E:4,F:5,G:7,A:9,B:11}[m[1]];
+  const acc=m[2]==="#"?1:m[2]==="b"?-1:0;
+  const midi=base+acc+(parseInt(m[3])+1)*12;
+  return 440*Math.pow(2,(midi-69)/12);
+}
+
+// ---- the song: bright, fast major-key anthem (We Are! feel) ----
+const SONG=(()=>{
+  const lead=[
+    // bar1 C
+    ["G4",.5],["G4",.5],["C5",1],["E5",.5],["D5",.5],["C5",1],
+    // bar2 G
+    ["D5",.5],["D5",.5],["B4",1],["D5",.5],["B4",.5],["G4",1],
+    // bar3 Am
+    ["C5",.5],["C5",.5],["E5",1],["C5",.5],["A4",.5],["C5",1],
+    // bar4 F
+    ["A4",.5],["C5",.5],["F5",1],["E5",.5],["D5",.5],["C5",1],
+    // bar5 C
+    ["E5",.5],["E5",.5],["G5",1],["E5",.5],["C5",.5],["E5",1],
+    // bar6 G
+    ["D5",.5],["D5",.5],["G5",1],["D5",.5],["B4",.5],["D5",1],
+    // bar7 F
+    ["C5",.5],["A4",.5],["F4",1],["A4",.5],["C5",.5],["A4",1],
+    // bar8 G7 -> turnaround
+    ["B4",.5],["D5",.5],["G5",1],["D5",1],["G4",1],
+  ];
+  const roots=["C2","G2","A2","F2","C2","G2","F2","G2"];
+  const bass=[];
+  roots.forEach(r=>{ for(let i=0;i<8;i++) bass.push([r,.5]); }); // driving 8ths
+  const chordTones={C2:["C5","E5","G5"],G2:["G4","B4","D5"],A2:["A4","C5","E5"],F2:["F4","A4","C5"]};
+  const harm=[];
+  roots.forEach(r=>{ const t=chordTones[r]; for(let i=0;i<8;i++) harm.push([t[i%3],.5]); });
+  const total=lead.reduce((s,n)=>s+n[1],0); // 32 beats
+  return {bpm:172, lead, bass, harm, totalBeats:total, bars:8};
+})();
+
+const music={playing:false, enabled:true, master:null, loopDur:0, nextLoopTime:0, timer:null, NOISE:null};
+
+function buildNoise(){
+  const len=Math.floor(actx.sampleRate*0.5);
+  const buf=actx.createBuffer(1,len,actx.sampleRate);
+  const d=buf.getChannelData(0);
+  for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
+  return buf;
+}
+function pulse(freq,t,dur,vol,duty){ // square-ish pulse via PeriodicWave-free square
+  if(!freq) return;
+  const o=actx.createOscillator(), g=actx.createGain();
+  o.type="square"; o.frequency.setValueAtTime(freq,t);
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.linearRampToValueAtTime(vol,t+0.008);
+  g.gain.setValueAtTime(vol*0.85,t+dur*0.6);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur*0.95);
+  o.connect(g); g.connect(music.master); o.start(t); o.stop(t+dur);
+}
+function triBass(freq,t,dur,vol){
+  if(!freq) return;
+  const o=actx.createOscillator(), g=actx.createGain();
+  o.type="triangle"; o.frequency.setValueAtTime(freq,t);
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.linearRampToValueAtTime(vol,t+0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur*0.9);
+  o.connect(g); g.connect(music.master); o.start(t); o.stop(t+dur);
+}
+function drumHit(t,kind){
+  const src=actx.createBufferSource(); src.buffer=music.NOISE;
+  const f=actx.createBiquadFilter(), g=actx.createGain();
+  if(kind==="kick"){ // pitched low thump
+    const o=actx.createOscillator(), og=actx.createGain();
+    o.type="square"; o.frequency.setValueAtTime(150,t); o.frequency.exponentialRampToValueAtTime(50,t+0.1);
+    og.gain.setValueAtTime(0.18,t); og.gain.exponentialRampToValueAtTime(0.0001,t+0.12);
+    o.connect(og); og.connect(music.master); o.start(t); o.stop(t+0.13); return;
+  }
+  if(kind==="snare"){ f.type="bandpass"; f.frequency.value=1800; g.gain.setValueAtTime(0.12,t);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+0.12); }
+  else { f.type="highpass"; f.frequency.value=7000; g.gain.setValueAtTime(0.05,t); // hat
+    g.gain.exponentialRampToValueAtTime(0.0001,t+0.04); }
+  src.connect(f); f.connect(g); g.connect(music.master);
+  src.start(t); src.stop(t+0.15);
+}
+function playLine(track,at,beat,voice){
+  let t=at;
+  for(const [note,dur] of track){ voice(noteFreq(note),t,dur*beat); t+=dur*beat; }
+}
+function scheduleSong(at){
+  const beat=60/SONG.bpm, eighth=beat/2;
+  playLine(SONG.lead, at, beat, (f,t,d)=>pulse(f,t,d,0.16));
+  playLine(SONG.harm, at, beat, (f,t,d)=>pulse(f,t,d,0.05));
+  playLine(SONG.bass, at, beat, (f,t,d)=>triBass(f,t,d,0.22));
+  // drums: punk beat, 8 eighths/bar over 8 bars
+  for(let bar=0;bar<SONG.bars;bar++){
+    for(let e=0;e<8;e++){
+      const t=at+(bar*8+e)*eighth;
+      if(e===0||e===4) drumHit(t,"kick");
+      if(e===2||e===6) drumHit(t,"snare");
+      drumHit(t,"hat");
+    }
+  }
+}
+function musicTick(){
+  if(!music.playing) return;
+  while(music.nextLoopTime < actx.currentTime + 0.3){
+    scheduleSong(music.nextLoopTime);
+    music.nextLoopTime += music.loopDur;
+  }
+}
+function startMusic(){
+  if(music.playing || !music.enabled) return;
+  try{
+    ensureCtx();
+    music.NOISE=music.NOISE||buildNoise();
+    music.master=actx.createGain();
+    music.master.gain.setValueAtTime(0.0001,actx.currentTime);
+    music.master.gain.linearRampToValueAtTime(0.5,actx.currentTime+1.2); // gentle fade-in
+    music.master.connect(actx.destination);
+    music.loopDur=SONG.totalBeats*60/SONG.bpm;
+    music.nextLoopTime=actx.currentTime+0.12;
+    music.playing=true;
+    music.timer=setInterval(musicTick,50);
+    musicTick();
+  }catch(e){ console.warn("music failed",e); }
+}
+function setMusicEnabled(on){
+  music.enabled=on;
+  const btn=$("muteBtn"); if(btn) btn.textContent=on?"🔊":"🔇";
+  if(on){ if(!music.playing) startMusic();
+          else if(music.master) music.master.gain.linearRampToValueAtTime(0.5,actx.currentTime+0.3); }
+  else if(music.master){ music.master.gain.linearRampToValueAtTime(0.0001,actx.currentTime+0.2); }
+}
 
 /* ============================================================
    GAME STATE & FLOW
@@ -429,7 +582,12 @@ CHARS.forEach(ch=>{
   renderChar(cv,ch);
 });
 
-$("startBtn").onclick=()=>{ beep(660,.08); show("select"); };
+$("startBtn").onclick=()=>{ beep(660,.08); startMusic(); show("select"); };
+$("muteBtn").onclick=(e)=>{ e.stopPropagation(); setMusicEnabled(!music.enabled); };
+// kick the soundtrack off on the very first interaction (autoplay policies need a gesture)
+["pointerdown","keydown"].forEach(ev=>document.addEventListener(ev,function once(){
+  startMusic(); document.removeEventListener(ev,once);
+},{once:true}));
 
 /* ----- debug hooks for headless screenshots: ?debug=select|battle ----- */
 window.addEventListener("load",()=>{
@@ -487,6 +645,28 @@ window.addEventListener("load",()=>{
         `moves enabled=${!anyDisabled}, menu shown=${menuShown}`;
       $("textbox").style.fontSize="15px";
     })();
+    return;
+  }
+  else if(d==="audio"){
+    // verify the chiptune engine starts + schedules a loop with no errors
+    show("battle");
+    let err=null, oscCount=0;
+    const realOsc=AudioContext.prototype.createOscillator;
+    try{
+      ensureCtx();
+      AudioContext.prototype.createOscillator=function(){ oscCount++; return realOsc.call(this); };
+      startMusic();
+      musicTick(); // force-schedule first loop window
+    }catch(e){ err=e&&e.message; }
+    setTimeout(()=>{
+      AudioContext.prototype.createOscillator=realOsc;
+      const ok = !err && music.playing && music.loopDur>0 && oscCount>0;
+      $("textbox").textContent =
+        (ok?"AUDIO PASS ✓ ":"AUDIO FAIL ✗ ")+
+        `playing=${music.playing}, loopDur=${music.loopDur.toFixed(2)}s, `+
+        `oscs scheduled=${oscCount}, ctx=${actx&&actx.state}`+(err?(" err="+err):"");
+      $("textbox").style.fontSize="14px";
+    },300);
     return;
   }
   else if(d==="ohko"){
