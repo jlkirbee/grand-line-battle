@@ -81,6 +81,11 @@
   .sprite{position:absolute; image-rendering:pixelated; transition:transform .25s, opacity .25s;}
   #foeSprite{right:9%; top:15%; width:34%;}
   #meSprite{left:7%; bottom:23%; width:38%; transform:scaleX(-1);}
+  #fxCanvas{position:absolute; inset:0; width:100%; height:100%;
+    pointer-events:none; z-index:20; image-rendering:pixelated;}
+  .card.s-jjk{border-color:#6a4a8a;} .card.s-jjk:hover{border-color:#b07ad0;}
+  .card.s-aot{border-color:#4a6a4a;} .card.s-aot:hover{border-color:#7ad07a;}
+  .card .series{font-size:7px; opacity:.5; letter-spacing:.3px; text-transform:uppercase;}
 
   /* status plates */
   .plate{position:absolute; background:var(--panel); border:3px solid var(--panel-edge);
@@ -151,7 +156,7 @@
   <!-- SELECT -->
   <div id="select" class="screen">
     <h2>CHOOSE YOUR FIGHTER</h2>
-    <p class="hint">Your pick battles a random Straw Hat crewmate.</p>
+    <p class="hint">Your pick battles a random rival from across the roster.</p>
     <div class="roster" id="roster"></div>
   </div>
 
@@ -162,6 +167,7 @@
       <div class="platform me-plat"></div>
       <canvas id="foeSprite" class="sprite"></canvas>
       <canvas id="meSprite" class="sprite"></canvas>
+      <canvas id="fxCanvas"></canvas>
 
       <div class="plate foe-plate">
         <div class="row1"><span class="pname" id="foeName">FOE</span><span class="lvl">Lv50</span></div>
@@ -191,53 +197,182 @@
 /* ============================================================
    GRAND LINE BATTLE — data
    ============================================================ */
+// move format: {n:name, p:power, fx:effectKey, c:color, x?:"ohko"}
 const CHARS = [
-  { id:"luffy", name:"LUFFY", role:"Captain",
+  // ===================== ONE PIECE =====================
+  { id:"luffy", name:"LUFFY", role:"Captain", series:"One Piece",
     hp:165, atk:95, def:78, spd:92,
     pal:{skin:"#e8b483", hair:"#221a14", vest:"#d23a2e", short:"#2c5fae", hat:"#f1cf6b", band:"#c0392b"},
     // "Kamehameha" is a one-shot KO vs any opponent — per Haddon's request.
-    // The "ohko" flag (3rd element) is handled in doAttack().
-    moves:[["Gum Pistol",45],["Gum Gatling",58],["Red Hawk",82],["Kamehameha",999,"ohko"]] },
+    moves:[
+      {n:"Gum Pistol",p:45,fx:"punch",c:"#d23a2e"},
+      {n:"Gum Gatling",p:58,fx:"flurry",c:"#e85c5c"},
+      {n:"Red Hawk",p:82,fx:"fire",c:"#ff6a2a"},
+      {n:"Kamehameha",p:999,fx:"beam",c:"#7fd0ff",x:"ohko"} ] },
 
-  { id:"zoro", name:"ZORO", role:"Swordsman",
+  { id:"zoro", name:"ZORO", role:"Swordsman", series:"One Piece",
     hp:160, atk:98, def:82, spd:80,
     pal:{skin:"#e8b483", hair:"#5bbf4d", shirt:"#f2f2ea", band:"#1f7a34", steel:"#cdd6e0", hilt:"#2c3550"},
-    moves:[["Oni Giri",55],["Tatsumaki",60],["Santoryu",48],["Asura",88]] },
+    moves:[
+      {n:"Oni Giri",p:55,fx:"slash",c:"#dfe8ff"},
+      {n:"Tatsumaki",p:60,fx:"wind",c:"#7fd08a"},
+      {n:"Santoryu",p:48,fx:"slash3",c:"#eaf0ff"},
+      {n:"Asura",p:88,fx:"slash5",c:"#9fb0d0"} ] },
 
-  { id:"nami", name:"NAMI", role:"Navigator",
+  { id:"nami", name:"NAMI", role:"Navigator", series:"One Piece",
     hp:140, atk:80, def:70, spd:96,
     pal:{skin:"#f1c79e", hair:"#f08a2e", top:"#3b6fd0", stripe:"#f2f2ea", rod:"#5a4a8a"},
-    moves:[["Thunderbolt",62],["Cyclone",50],["Thunder Lance",80],["Mirage",34]] },
+    moves:[
+      {n:"Thunderbolt",p:62,fx:"lightning",c:"#ffe14d"},
+      {n:"Cyclone",p:50,fx:"wind",c:"#bfe4ff"},
+      {n:"Thunder Lance",p:80,fx:"lightning",c:"#aee0ff"},
+      {n:"Mirage",p:34,fx:"spark",c:"#d0c0ff"} ] },
 
-  { id:"sanji", name:"SANJI", role:"Cook",
+  { id:"sanji", name:"SANJI", role:"Cook", series:"One Piece",
     hp:150, atk:90, def:75, spd:90,
     pal:{skin:"#f1c79e", hair:"#e9c64a", suit:"#1c2230", shirt:"#f2f2ea", brow:"#caa83a"},
-    moves:[["Collier",48],["Concasse",60],["Diable Jambe",85],["Party Kick",52]] },
+    moves:[
+      {n:"Collier",p:48,fx:"kick",c:"#ffd23f"},
+      {n:"Concasse",p:60,fx:"impact",c:"#ffcf6b"},
+      {n:"Diable Jambe",p:85,fx:"fire",c:"#ff7a2a"},
+      {n:"Party Kick",p:52,fx:"flurry",c:"#ffe0a8"} ] },
 
-  { id:"usopp", name:"USOPP", role:"Sniper",
+  { id:"usopp", name:"USOPP", role:"Sniper", series:"One Piece",
     hp:135, atk:78, def:68, spd:84,
     pal:{skin:"#9c6b3f", hair:"#1a1a1a", overall:"#caa14a", band:"#7a8a3a", nose:"#9c6b3f", sling:"#5a3a1a"},
-    moves:[["Lead Star",36],["Fire Star",56],["Impact Star",66],["Pop Green",76]] },
+    moves:[
+      {n:"Lead Star",p:36,fx:"projectile",c:"#bcbcbc"},
+      {n:"Fire Star",p:56,fx:"fire",c:"#ff7a2a"},
+      {n:"Impact Star",p:66,fx:"impact",c:"#caa14a"},
+      {n:"Pop Green",p:76,fx:"projectile",c:"#7ad06a"} ] },
 
-  { id:"chopper", name:"CHOPPER", role:"Doctor",
+  { id:"chopper", name:"CHOPPER", role:"Doctor", series:"One Piece",
     hp:148, atk:82, def:80, spd:82,
     pal:{fur:"#a9743f", inner:"#f0d9a0", hat:"#d24a6a", hatX:"#f2f2ea", antler:"#d9b06a", nose:"#3b6fd0"},
-    moves:[["Heavy Point",54],["Kung-Fu Point",58],["Horn Point",72],["Guard Point",30]] },
+    moves:[
+      {n:"Heavy Point",p:54,fx:"punch",c:"#a9743f"},
+      {n:"Kung-Fu Point",p:58,fx:"flurry",c:"#f0d9a0"},
+      {n:"Horn Point",p:72,fx:"impact",c:"#d9b06a"},
+      {n:"Guard Point",p:30,fx:"shield",c:"#bfe4ff"} ] },
 
-  { id:"robin", name:"ROBIN", role:"Archaeologist",
+  { id:"robin", name:"ROBIN", role:"Archaeologist", series:"One Piece",
     hp:145, atk:85, def:74, spd:78,
     pal:{skin:"#e8b483", hair:"#1a1a1a", coat:"#5e3a86", shirt:"#3a2b52", arm:"#e8b483"},
-    moves:[["Dos Fleur",42],["Clutch",64],["Cien Fleur",74],["Spider Net",52]] },
+    moves:[
+      {n:"Dos Fleur",p:42,fx:"claw",c:"#b07ad0"},
+      {n:"Clutch",p:64,fx:"impact",c:"#5e3a86"},
+      {n:"Cien Fleur",p:74,fx:"claw3",c:"#8a5ab0"},
+      {n:"Spider Net",p:52,fx:"net",c:"#cda0e0"} ] },
 
-  { id:"franky", name:"FRANKY", role:"Shipwright",
+  { id:"franky", name:"FRANKY", role:"Shipwright", series:"One Piece",
     hp:175, atk:96, def:90, spd:64,
     pal:{skin:"#d99c6a", hair:"#49c6e8", shirt:"#e85c8a", shade:"#1a1a2a", steel:"#aeb8c4", brief:"#1c1c28"},
-    moves:[["Strong Right",56],["Weapons Left",52],["Coup de Vent",86],["Franky Boxing",46]] },
+    moves:[
+      {n:"Strong Right",p:56,fx:"punch",c:"#49c6e8"},
+      {n:"Weapons Left",p:52,fx:"projectile",c:"#7fd0ff"},
+      {n:"Coup de Vent",p:86,fx:"beam",c:"#bfeaff"},
+      {n:"Franky Boxing",p:46,fx:"flurry",c:"#aeb8c4"} ] },
 
-  { id:"brook", name:"BROOK", role:"Musician",
+  { id:"brook", name:"BROOK", role:"Musician", series:"One Piece",
     hp:138, atk:88, def:66, spd:94,
     pal:{bone:"#f3efe2", afro:"#1a1a1a", suit:"#26324a", tie:"#d23a2e", cane:"#6a4a2a", steel:"#cdd6e0"},
-    moves:[["Hanauta Slash",62],["Soul Solid",54],["Polka Remise",46],["Swallow Bond",78]] },
+    moves:[
+      {n:"Hanauta Slash",p:62,fx:"slash",c:"#cdd6e0"},
+      {n:"Soul Solid",p:54,fx:"slash",c:"#aee0ff"},
+      {n:"Polka Remise",p:46,fx:"slash3",c:"#e8e8f0"},
+      {n:"Swallow Bond",p:78,fx:"slash5",c:"#9fb0d0"} ] },
+
+  // ===================== JUJUTSU KAISEN =====================
+  { id:"gojo", name:"GOJO", role:"Sorcerer", series:"Jujutsu Kaisen",
+    hp:158, atk:96, def:88, spd:95,
+    pal:{skin:"#f0cda8", hair:"#f2f2f2", blind:"#171a22", coat:"#0f1320", eye:"#4aa0ff"},
+    moves:[
+      {n:"Lapse: Blue",p:64,fx:"orb",c:"#4aa0ff"},
+      {n:"Reversal: Red",p:70,fx:"orbRed",c:"#ff4a4a"},
+      {n:"Hollow Purple",p:92,fx:"beam",c:"#a64ad0"},
+      {n:"Unlimited Void",p:80,fx:"domain",c:"#6a8aff"} ] },
+
+  { id:"yuji", name:"YUJI", role:"Vessel", series:"Jujutsu Kaisen",
+    hp:160, atk:94, def:80, spd:90,
+    pal:{skin:"#e8b88f", hair:"#f2a0b8", jacket:"#1c2230", hood:"#2a3142", zip:"#d0d0d0"},
+    moves:[
+      {n:"Divergent Fist",p:60,fx:"impact",c:"#ff7aa0"},
+      {n:"Black Flash",p:88,fx:"blackflash",c:"#1a1a1a"},
+      {n:"Manji Kick",p:55,fx:"kick",c:"#ffb0c0"},
+      {n:"Slaughter Demon",p:58,fx:"slash3",c:"#ff9ab0"} ] },
+
+  { id:"megumi", name:"MEGUMI", role:"Sorcerer", series:"Jujutsu Kaisen",
+    hp:150, atk:86, def:82, spd:84,
+    pal:{skin:"#e8b88f", hair:"#1c2230", spike:"#2a3346", jacket:"#0f1320", trim:"#3a4660"},
+    moves:[
+      {n:"Divine Dogs",p:58,fx:"shadow",c:"#2a3a5a"},
+      {n:"Nue",p:62,fx:"lightning",c:"#6a7aa0"},
+      {n:"Max Elephant",p:70,fx:"beam",c:"#5a7ab0"},
+      {n:"Chimera Shadow",p:78,fx:"domain",c:"#11161f"} ] },
+
+  { id:"nobara", name:"NOBARA", role:"Sorcerer", series:"Jujutsu Kaisen",
+    hp:140, atk:88, def:72, spd:82,
+    pal:{skin:"#f0cda8", hair:"#caa14a", coat:"#3a4252", scarf:"#c0563a", hammer:"#8a6a3a"},
+    moves:[
+      {n:"Hairpin",p:56,fx:"nails",c:"#e0a050"},
+      {n:"Resonance",p:72,fx:"impact",c:"#caa14a"},
+      {n:"Straw Doll",p:64,fx:"projectile",c:"#d0b070"},
+      {n:"Hammer Smash",p:60,fx:"impact",c:"#a07840"} ] },
+
+  { id:"sukuna", name:"SUKUNA", role:"Curse King", series:"Jujutsu Kaisen",
+    hp:172, atk:99, def:86, spd:92,
+    pal:{skin:"#e6b48a", hair:"#d6a0c0", mark:"#1a1a1a", eye:"#c0392b", robe:"#3a2230"},
+    moves:[
+      {n:"Dismantle",p:78,fx:"claw3",c:"#ff5a4a"},
+      {n:"Cleave",p:70,fx:"slash",c:"#e84a3a"},
+      {n:"Open: Fuga",p:95,fx:"fire",c:"#ff7a2a"},
+      {n:"Malevolent Shrine",p:90,fx:"domain",c:"#7a1a1a"} ] },
+
+  // ===================== ATTACK ON TITAN =====================
+  { id:"eren", name:"EREN", role:"Scout", series:"Attack on Titan",
+    hp:165, atk:92, def:84, spd:82,
+    pal:{skin:"#e8b483", hair:"#6a4a2a", cloak:"#3a5a3a", strap:"#5a4632", emblem:"#2a3a6a"},
+    moves:[
+      {n:"ODM Strike",p:58,fx:"odm",c:"#cdd6e0"},
+      {n:"Blade Flurry",p:55,fx:"odmspin",c:"#dfe8ff"},
+      {n:"Titan Shift",p:80,fx:"titan",c:"#ffe14d"},
+      {n:"Hardening",p:70,fx:"shield",c:"#bfe4ff"} ] },
+
+  { id:"mikasa", name:"MIKASA", role:"Ace", series:"Attack on Titan",
+    hp:150, atk:93, def:78, spd:92,
+    pal:{skin:"#ecc6a0", hair:"#1c1c22", scarf:"#b03a3a", cloak:"#3a5a3a", strap:"#5a4632"},
+    moves:[
+      {n:"Dual Blades",p:58,fx:"odm",c:"#ff8a8a"},
+      {n:"Thunder Spear",p:78,fx:"spear",c:"#ffcf6b"},
+      {n:"Ackerman Slash",p:74,fx:"slash5",c:"#ffd0d0"},
+      {n:"Spin Cut",p:60,fx:"odmspin",c:"#e85c5c"} ] },
+
+  { id:"levi", name:"LEVI", role:"Captain", series:"Attack on Titan",
+    hp:145, atk:95, def:80, spd:98,
+    pal:{skin:"#e8c4a0", hair:"#1a1a20", under:"#2a2a32", cravat:"#f2f2ea", cloak:"#3a5a3a"},
+    moves:[
+      {n:"Spinning Blades",p:66,fx:"odmspin",c:"#cdd6e0"},
+      {n:"ODM Dash",p:60,fx:"odm",c:"#aeb8c4"},
+      {n:"Blade Cyclone",p:78,fx:"odmspin",c:"#dfe8ff"},
+      {n:"Clean Cut",p:70,fx:"slash",c:"#eaf0ff"} ] },
+
+  { id:"armin", name:"ARMIN", role:"Strategist", series:"Attack on Titan",
+    hp:135, atk:78, def:72, spd:80,
+    pal:{skin:"#f0d2ac", hair:"#e0c060", cloak:"#3a5a3a", strap:"#5a4632", emblem:"#2a3a6a"},
+    moves:[
+      {n:"Thunder Spear",p:70,fx:"spear",c:"#ffcf6b"},
+      {n:"ODM Strike",p:54,fx:"odm",c:"#cdd6e0"},
+      {n:"Tactical Strike",p:60,fx:"impact",c:"#9ab0d0"},
+      {n:"Colossal Plan",p:76,fx:"steam",c:"#e8e8e8"} ] },
+
+  { id:"titan", name:"TITAN", role:"Attack Titan", series:"Attack on Titan",
+    hp:185, atk:97, def:92, spd:60,
+    pal:{muscle:"#c2705a", sinew:"#a4503a", teeth:"#f2efe2", eye:"#cfe04a", hair:"#3a2a22"},
+    moves:[
+      {n:"Stomp",p:72,fx:"titan",c:"#c2705a"},
+      {n:"Nape Bite",p:82,fx:"bite",c:"#caa080"},
+      {n:"Hardening Punch",p:76,fx:"titan",c:"#bfe4ff"},
+      {n:"The Rumbling",p:95,fx:"titan",c:"#9a5a3a"} ] },
 ];
 
 /* ============================================================
@@ -383,6 +518,83 @@ function hairSpiky(ctx,c){ P(ctx,9,8,14,3,c); P(ctx,9,6,2,3,c); P(ctx,13,5,2,4,c
 function hairLong(ctx,c){ P(ctx,9,7,14,4,c); P(ctx,8,9,2,12,c); P(ctx,22,9,2,12,c); P(ctx,10,6,12,2,c); }
 function hairLongStraight(ctx,c){ P(ctx,9,7,14,4,c); P(ctx,8,9,2,14,c); P(ctx,22,9,2,14,c); P(ctx,11,5,10,2,c); }
 function hairSwoop(ctx,c){ P(ctx,9,7,14,4,c); P(ctx,9,9,7,5,c); P(ctx,9,11,5,5,c); P(ctx,18,6,4,2,c); }
+
+/* ---- Jujutsu Kaisen + Attack on Titan sprites ---- */
+Object.assign(DRAW,{
+  gojo(ctx,p){
+    legs(ctx,"#0f1320"); body(ctx,p.coat,p.skin,false); arms(ctx,p.coat);
+    head(ctx,p.skin);
+    P(ctx,9,7,14,4,p.hair); P(ctx,9,6,3,3,p.hair); P(ctx,13,5,3,3,p.hair);
+    P(ctx,17,5,3,3,p.hair); P(ctx,20,6,3,3,p.hair); P(ctx,9,10,2,4,p.hair); P(ctx,21,10,2,4,p.hair);
+    P(ctx,9,14,14,3,p.blind); // blindfold
+    P(ctx,11,15,2,1,p.eye); P(ctx,19,15,2,1,p.eye); // faint blue glow
+    mouthFlat(ctx);
+  },
+  yuji(ctx,p){
+    legs(ctx,"#1c2230"); body(ctx,p.jacket,p.skin,false);
+    P(ctx,15,21,2,8,p.zip); P(ctx,9,20,3,3,p.hood); P(ctx,20,20,3,3,p.hood);
+    arms(ctx,p.jacket); head(ctx,p.skin);
+    P(ctx,9,7,14,4,p.hair); P(ctx,10,5,3,3,p.hair); P(ctx,14,4,4,3,p.hair); P(ctx,18,5,3,3,p.hair);
+    eyes(ctx); mouthFlat(ctx);
+  },
+  megumi(ctx,p){
+    legs(ctx,"#0f1320"); body(ctx,p.jacket,p.skin,false); P(ctx,10,21,12,1,p.trim);
+    arms(ctx,p.jacket); head(ctx,p.skin);
+    P(ctx,9,8,14,3,p.hair);
+    P(ctx,8,5,3,5,p.hair); P(ctx,12,3,3,6,p.hair); P(ctx,16,3,3,6,p.hair); P(ctx,20,5,3,5,p.hair);
+    P(ctx,10,4,2,4,p.spike); P(ctx,18,4,2,4,p.spike);
+    eyes(ctx); mouthFlat(ctx);
+  },
+  nobara(ctx,p){
+    legs(ctx,"#3a4252"); body(ctx,p.coat,p.skin,false); P(ctx,11,20,10,2,p.scarf);
+    arms(ctx,p.coat); head(ctx,p.skin); hairLong(ctx,p.hair);
+    eyes(ctx); smile(ctx);
+    P(ctx,24,16,2,2,p.hammer); P(ctx,24,18,1,9,p.hammer); // hammer
+  },
+  sukuna(ctx,p){
+    legs(ctx,"#2a1820"); body(ctx,p.robe,p.skin,true); arms(ctx,p.skin); head(ctx,p.skin);
+    P(ctx,9,7,14,4,p.hair); P(ctx,10,5,3,3,p.hair); P(ctx,14,4,4,3,p.hair); P(ctx,18,5,3,3,p.hair);
+    P(ctx,11,13,1,2,p.mark); P(ctx,13,13,1,2,p.mark); P(ctx,19,13,1,2,p.mark); P(ctx,21,13,1,2,p.mark);
+    P(ctx,11,18,3,1,p.mark); P(ctx,18,18,3,1,p.mark);
+    P(ctx,12,15,2,2,p.eye); P(ctx,18,15,2,2,p.eye); mouthFlat(ctx);
+  },
+  eren(ctx,p){
+    legs(ctx,"#3a3a40"); P(ctx,8,20,16,10,p.cloak); P(ctx,13,21,6,9,p.strap); P(ctx,14,21,4,3,p.emblem);
+    arms(ctx,p.cloak); P(ctx,11,29,1,5,p.strap); P(ctx,20,29,1,5,p.strap);
+    head(ctx,p.skin);
+    P(ctx,9,7,14,4,p.hair); P(ctx,8,9,2,5,p.hair); P(ctx,22,9,2,5,p.hair); P(ctx,11,6,10,2,p.hair);
+    eyes(ctx); mouthFlat(ctx);
+  },
+  mikasa(ctx,p){
+    legs(ctx,"#3a3a40"); P(ctx,8,20,16,10,p.cloak); P(ctx,13,22,6,8,p.strap); arms(ctx,p.cloak);
+    head(ctx,p.skin); hairLong(ctx,p.hair);
+    P(ctx,10,18,12,3,p.scarf); P(ctx,12,20,3,3,p.scarf); // red scarf
+    eyes(ctx); P(ctx,14,19,4,1,"#9a5a5a");
+  },
+  levi(ctx,p){
+    legs(ctx,"#2a2a32"); P(ctx,8,20,16,10,p.cloak); P(ctx,13,21,6,9,p.under); P(ctx,13,20,6,3,p.cravat);
+    arms(ctx,p.cloak); head(ctx,p.skin);
+    P(ctx,10,7,12,4,p.hair); P(ctx,11,6,10,2,p.hair); P(ctx,9,11,2,2,p.under); P(ctx,21,11,2,2,p.under);
+    eyes(ctx); P(ctx,14,19,4,1,"#7a5b4a");
+  },
+  armin(ctx,p){
+    legs(ctx,"#3a3a40"); P(ctx,8,20,16,10,p.cloak); P(ctx,13,21,6,9,p.strap); P(ctx,14,21,4,3,p.emblem);
+    arms(ctx,p.cloak); head(ctx,p.skin);
+    P(ctx,8,7,16,5,p.hair); P(ctx,8,11,2,8,p.hair); P(ctx,22,11,2,8,p.hair); P(ctx,9,6,14,2,p.hair);
+    eyes(ctx); P(ctx,14,19,4,1,"#a06a4a");
+  },
+  titan(ctx,p){
+    legs(ctx,p.muscle); P(ctx,7,18,18,12,p.muscle);
+    P(ctx,9,20,2,3,p.sinew); P(ctx,21,20,2,3,p.sinew); P(ctx,13,19,1,10,p.sinew);
+    P(ctx,4,19,4,9,p.muscle); P(ctx,24,19,4,9,p.muscle);
+    blob(ctx,9,9,14,11,p.muscle);
+    P(ctx,9,8,14,3,p.hair); P(ctx,8,10,2,5,p.hair); P(ctx,22,10,2,5,p.hair);
+    P(ctx,12,14,3,2,p.eye); P(ctx,18,14,3,2,p.eye);
+    P(ctx,12,18,9,2,p.muscle);
+    for(let i=0;i<9;i+=2){ P(ctx,12+i,18,1,2,p.teeth); }
+    P(ctx,12,17,9,1,p.sinew);
+  },
+});
 
 function renderChar(canvas,ch){
   const ctx=makeSprite(canvas);
@@ -574,14 +786,16 @@ let me=null, foe=null, meHP=0, foeHP=0, busy=false;
 
 /* ----- build roster cards ----- */
 const roster=$("roster");
+const SERIES_CLASS={ "One Piece":"s-op", "Jujutsu Kaisen":"s-jjk", "Attack on Titan":"s-aot" };
 CHARS.forEach(ch=>{
   const card=document.createElement("div");
-  card.className="card";
+  card.className="card "+(SERIES_CLASS[ch.series]||"");
   const cv=document.createElement("canvas");
   card.appendChild(cv);
   const nm=document.createElement("div"); nm.className="nm"; nm.textContent=ch.name;
   const role=document.createElement("div"); role.className="role"; role.textContent=ch.role;
-  card.appendChild(nm); card.appendChild(role);
+  const ser=document.createElement("div"); ser.className="series"; ser.textContent=ch.series;
+  card.appendChild(nm); card.appendChild(role); card.appendChild(ser);
   card.onclick=()=>{ sfx.select(); startBattle(ch); };
   roster.appendChild(card);
   renderChar(cv,ch);
@@ -652,6 +866,40 @@ window.addEventListener("load",()=>{
     })();
     return;
   }
+  else if(d==="fx"){
+    const qp=new URLSearchParams(location.search);
+    const one=qp.get("one"), pv=parseFloat(qp.get("p")||"0.5");
+    me=CHARS[0]; foe=CHARS[1]; renderChar($("meSprite"),me); renderChar($("foeSprite"),foe);
+    $("meName").textContent=me.name; $("foeName").textContent=foe.name; setHP("me"); setHP("foe");
+    $("meSprite").style.opacity=1; $("foeSprite").style.opacity=1;
+    $("menu").classList.remove("show"); show("battle");
+    if(one){
+      // render a single effect full-size in battle context (me attacking foe)
+      setTimeout(()=>{ fxSize(); const ctx=fxCtx(),c=$("fxCanvas"),W=c.width,H=c.height;
+        const {src,dst}=fxAnchors("me"); ctx.clearRect(0,0,W,H);
+        try{ (FX[one]||FX.impact)(ctx,pv,"#a64ad0",src,dst,W,H); }catch(e){}
+        $("textbox").textContent=`fx: ${one} @ p=${pv}`;
+      },120);
+      return;
+    }
+    // contact sheet: render every attack effect at mid-progress in a grid
+    setTimeout(()=>{
+      fxSize(); const ctx=fxCtx(), c=$("fxCanvas"), W=c.width, H=c.height;
+      ctx.clearRect(0,0,W,H);
+      const keys=Object.keys(FX), cols=6, rows=Math.ceil(keys.length/cols), cw=W/cols, ch=H/rows;
+      keys.forEach((k,idx)=>{
+        const cx=(idx%cols)*cw, cy=Math.floor(idx/cols)*ch;
+        const src={x:cx+cw*0.28,y:cy+ch*0.72}, dst={x:cx+cw*0.6,y:cy+ch*0.46};
+        ctx.save(); ctx.beginPath(); ctx.rect(cx+1,cy+1,cw-2,ch-2); ctx.clip();
+        try{ FX[k](ctx,0.5,"#7fd0ff",src,dst,cw,ch); }catch(e){}
+        ctx.restore();
+        ctx.fillStyle="#fff"; ctx.font="bold 11px monospace"; ctx.fillText(k,cx+4,cy+13);
+        ctx.strokeStyle="rgba(255,255,255,.15)"; ctx.strokeRect(cx,cy,cw,ch);
+      });
+      $("textbox").textContent=`FX contact sheet — ${keys.length} effects rendered`;
+    },120);
+    return;
+  }
   else if(d==="audio"){
     // verify the chiptune engine starts + schedules a loop with no errors
     show("battle");
@@ -683,16 +931,16 @@ window.addEventListener("load",()=>{
     setHP("me"); setHP("foe"); buildMenu();
     $("meSprite").style.opacity=1; $("foeSprite").style.opacity=1;
     show("battle");
-    const kame=me.moves.find(m=>m[2]==="ohko");
+    const kame=me.moves.find(m=>m.x==="ohko");
     (async()=>{
       const before=foeHP;
       // call doAttack directly so we observe the hit even though endBattle fires after
       await doAttack("me", kame);
-      const ok = foeHP<=0 && before>0 && kame[0]==="Kamehameha";
+      const ok = foeHP<=0 && before>0 && kame.n==="Kamehameha";
       $("toast").textContent = ok ? "OHKO PASS ✓" : "OHKO FAIL ✗";
       $("toast").classList.add("show");
       $("textbox").textContent =
-        `${ok?"OHKO PASS ✓":"OHKO FAIL ✗"} — ${foe.name} HP ${before} → ${foeHP} via ${kame[0]}`;
+        `${ok?"OHKO PASS ✓":"OHKO FAIL ✗"} — ${foe.name} HP ${before} → ${foeHP} via ${kame.n}`;
       $("textbox").style.fontSize="15px";
     })();
     return;
@@ -778,11 +1026,222 @@ async function introSequence(){
   playerTurn();
 }
 
+/* ============================================================
+   ATTACK FX ENGINE  — a unique animated effect + sound per move
+   ============================================================ */
+function fxCtx(){ return $("fxCanvas").getContext("2d"); }
+function fxSize(){ const c=$("fxCanvas"); const r=c.getBoundingClientRect();
+  c.width=Math.max(2,r.width|0); c.height=Math.max(2,r.height|0); }
+function fxAnchors(side){
+  const c=$("fxCanvas"), W=c.width, H=c.height;
+  const meA={x:W*0.26,y:H*0.74}, foeA={x:W*0.76,y:H*0.34};
+  return side==="me"?{src:meA,dst:foeA,W,H}:{src:foeA,dst:meA,W,H};
+}
+function hexA(hex,a){ const n=parseInt(hex.slice(1),16);
+  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`; }
+function gdot(c,x,y,r,col,a){ c.save(); c.globalCompositeOperation="lighter"; c.globalAlpha=a;
+  const g=c.createRadialGradient(x,y,0,x,y,Math.max(1,r)); g.addColorStop(0,col); g.addColorStop(1,hexA(col,0));
+  c.fillStyle=g; c.beginPath(); c.arc(x,y,Math.max(1,r),0,7); c.fill(); c.restore(); }
+function gline(c,x1,y1,x2,y2,w,col,a){ c.save(); c.globalAlpha=a; c.lineCap="round";
+  c.lineWidth=w; c.strokeStyle=col; c.beginPath(); c.moveTo(x1,y1); c.lineTo(x2,y2); c.stroke(); c.restore(); }
+const lerp=(s,d,t)=>({x:s.x+(d.x-s.x)*t,y:s.y+(d.y-s.y)*t});
+
+function fxSlash(c,p,col,d,n,W,H){ const len=W*0.13;
+  for(let i=0;i<n;i++){ const t=Math.min(1,Math.max(0,(p-i*0.1)/0.45)); if(t<=0||t>=1) continue;
+    const a=Math.sin(t*Math.PI), ang=-0.7+i*0.5;
+    const ox=d.x+(i-(n-1)/2)*W*0.03, oy=d.y+(i-(n-1)/2)*H*0.03;
+    const dx=Math.cos(ang)*len*t, dy=Math.sin(ang)*len*t;
+    gline(c,ox-dx,oy-dy,ox+dx,oy+dy,H*0.018,col,a);
+    gline(c,ox-dx,oy-dy,ox+dx,oy+dy,H*0.006,"#fff",a*0.9); } }
+function fxImpact(c,p,col,d,W,H){ const a=1-p, r=H*0.02+p*H*0.16;
+  gdot(c,d.x,d.y,r*0.8,col,a*0.7); c.save(); c.globalAlpha=a; c.strokeStyle="#fff"; c.lineWidth=H*0.01;
+  c.beginPath(); c.arc(d.x,d.y,r,0,7); c.stroke();
+  for(let i=0;i<8;i++){ const ang=i*Math.PI/4; gline(c,d.x,d.y,d.x+Math.cos(ang)*r*1.4,d.y+Math.sin(ang)*r*1.4,H*0.008,col,a); }
+  c.restore(); }
+function fxPunch(c,p,col,s,d,W,H){
+  if(p<0.5){ const t=p/0.5, x=s.x+(d.x-s.x)*t, y=s.y+(d.y-s.y)*t;
+    gline(c,s.x,s.y,x,y,H*0.02,col,0.5); gdot(c,x,y,H*0.05,col,0.8); }
+  else{ const t=(p-0.5)/0.5, a=1-t, r=H*0.04+t*H*0.12; gdot(c,d.x,d.y,r,col,a);
+    c.save(); c.globalAlpha=a; c.strokeStyle="#fff"; c.lineWidth=H*0.012;
+    for(const ang of [0,Math.PI/2,Math.PI,3*Math.PI/2]){ c.beginPath(); c.moveTo(d.x,d.y);
+      c.lineTo(d.x+Math.cos(ang)*r*1.5,d.y+Math.sin(ang)*r*1.5); c.stroke(); } c.restore(); } }
+function fxFlurry(c,p,col,s,d,W,H){
+  for(let i=0;i<10;i++){ const tp=p*10-i; if(tp<0||tp>1) continue; const a=1-tp, seed=i*97;
+    const x=d.x+((seed%7)-3)*W*0.02, y=d.y+(((seed*3)%7)-3)*H*0.02;
+    gdot(c,x,y,H*0.04,col,a*0.9); gline(c,x-8,y,x+8,y,H*0.006,"#fff",a); } }
+function fxFire(c,p,col,s,d,W,H){
+  if(p<0.55){ const t=p/0.55, x=s.x+(d.x-s.x)*t, y=s.y+(d.y-s.y)*t;
+    gdot(c,x,y,H*0.06,col,0.95); gdot(c,x,y,H*0.1,"#ffd23f",0.4);
+    for(let k=1;k<4;k++){ const tt=Math.max(0,t-k*0.06), xx=s.x+(d.x-s.x)*tt, yy=s.y+(d.y-s.y)*tt; gdot(c,xx,yy,H*0.04/k,col,0.4/k); } }
+  else{ const t=(p-0.55)/0.45, a=1-t, r=H*0.05+t*H*0.18; gdot(c,d.x,d.y,r,col,a); gdot(c,d.x,d.y,r*0.6,"#ffd23f",a*0.8);
+    for(let i=0;i<6;i++){ const ang=i*Math.PI/3+t; gline(c,d.x,d.y,d.x+Math.cos(ang)*r,d.y+Math.sin(ang)*r,H*0.01,"#ff9a3a",a); } } }
+function fxBeam(c,p,col,s,d,W,H){ c.save(); c.globalCompositeOperation="lighter";
+  if(p<0.3){ const t=p/0.3; gdot(c,s.x,s.y,H*0.02+t*H*0.06,col,0.9); }
+  else{ const t=(p-0.3)/0.7, a=t<0.7?1:(1-(t-0.7)/0.3), grow=Math.min(1,t/0.3), e=lerp(s,d,grow);
+    gline(c,s.x,s.y,e.x,e.y,H*0.06,col,a*0.7); gline(c,s.x,s.y,e.x,e.y,H*0.025,"#fff",a*0.9); gdot(c,e.x,e.y,H*0.09,col,a); }
+  c.restore(); }
+function fxOrb(c,p,col,s,d,W,H){ c.save(); c.globalCompositeOperation="lighter";
+  if(p<0.4){ const t=p/0.4, r=H*0.1*(1-t*0.4); gdot(c,s.x,s.y,r,col,0.8);
+    c.strokeStyle=hexA(col,0.6*t); c.lineWidth=2; for(let i=0;i<3;i++){ c.beginPath(); c.arc(s.x,s.y,r*(0.6+i*0.3),0,7); c.stroke(); } }
+  else{ const t=(p-0.4)/0.6, e=lerp(s,d,t); gdot(c,e.x,e.y,H*0.07,col,0.95);
+    if(t>0.85){ const a=(t-0.85)/0.15; gdot(c,d.x,d.y,H*0.05+a*H*0.16,col,1-a); } } c.restore(); }
+function fxLightning(c,p,col,d,W,H){ const a=1-p, sy=0, ey=d.y;
+  c.save(); c.globalAlpha=a; c.strokeStyle="#fff"; c.lineWidth=H*0.012; c.lineJoin="round";
+  c.shadowColor=col; c.shadowBlur=12; c.beginPath(); c.moveTo(d.x,sy);
+  for(let i=1;i<=8;i++){ const yy=sy+(ey-sy)*i/8, jit=((i*53+Math.floor(p*30))%11-5)*W*0.012; c.lineTo(d.x+jit*(1-i/8),yy); }
+  c.lineTo(d.x,ey); c.stroke(); c.strokeStyle=col; c.lineWidth=H*0.024; c.globalAlpha=a*0.4; c.stroke(); c.restore();
+  gdot(c,d.x,d.y,H*0.08*a,col,a); }
+function fxWind(c,p,col,d,W,H){ const a=Math.sin(p*Math.PI); c.save(); c.globalAlpha=a; c.strokeStyle=col; c.lineWidth=H*0.012;
+  for(let i=0;i<4;i++){ const rr=H*0.05+i*H*0.03, st=p*10+i; c.beginPath(); c.arc(d.x,d.y,rr,st,st+2.4); c.stroke(); } c.restore(); }
+function fxSpark(c,p,col,d,W,H){ for(let i=0;i<12;i++){ const ang=i*0.7+p*3, rr=H*0.04+(i%3)*H*0.03+p*H*0.06;
+  const x=d.x+Math.cos(ang)*rr, y=d.y+Math.sin(ang)*rr, a=(1-p)*(0.5+0.5*Math.sin(p*20+i)); gdot(c,x,y,H*0.02,col,a); } }
+function fxProjectile(c,p,col,s,d,W,H){ for(let i=0;i<6;i++){ const t=p*1.4-i*0.12; if(t<0||t>1) continue;
+  const x=s.x+(d.x-s.x)*t, y=s.y+(d.y-s.y)*t-Math.sin(t*Math.PI)*H*0.04; gdot(c,x,y,H*0.025,col,0.95);
+  c.save(); c.globalAlpha=0.9; c.fillStyle="#fff"; c.beginPath(); c.arc(x,y,H*0.01,0,7); c.fill(); c.restore();
+  if(t>0.92) gdot(c,d.x,d.y,H*0.05,col,0.6); } }
+function fxClaw(c,p,col,d,n,W,H){ const t=Math.sin(p*Math.PI), len=W*0.12;
+  for(let i=0;i<n;i++){ const off=(i-(n-1)/2)*H*0.03;
+    gline(c,d.x-len*0.5*p,d.y-len*0.6*p+off,d.x+len*0.6*p,d.y+len*0.4*p+off,H*0.014,col,t);
+    gline(c,d.x-len*0.5*p,d.y-len*0.6*p+off,d.x+len*0.6*p,d.y+len*0.4*p+off,H*0.004,"#fff",t*0.8); } }
+function fxNet(c,p,col,d,W,H){ const a=Math.sin(p*Math.PI), R=H*0.04+p*H*0.13; c.save(); c.globalAlpha=a; c.strokeStyle=col; c.lineWidth=2;
+  for(let i=0;i<6;i++){ const ang=i*Math.PI/3; c.beginPath(); c.moveTo(d.x,d.y); c.lineTo(d.x+Math.cos(ang)*R,d.y+Math.sin(ang)*R); c.stroke(); }
+  for(let r=1;r<=3;r++){ c.beginPath(); c.arc(d.x,d.y,R*r/3,0,7); c.stroke(); } c.restore(); }
+function fxDomain(c,p,col,s,d,W,H){ c.save(); c.globalAlpha=Math.sin(p*Math.PI)*0.5; c.fillStyle=col; c.fillRect(0,0,W,H); c.restore();
+  c.save(); c.globalCompositeOperation="lighter"; const cx=W/2, cy=H/2;
+  for(let k=0;k<3;k++){ const rr=p*1.2-k*0.15; if(rr<0) continue; const R=rr*W*0.6, a=Math.max(0,1-rr);
+    c.globalAlpha=a*0.8; c.strokeStyle=col; c.lineWidth=H*0.01; c.beginPath(); c.arc(cx,cy,R,0,7); c.stroke(); }
+  c.globalAlpha=Math.sin(p*Math.PI); c.strokeStyle="#fff"; c.lineWidth=H*0.008;
+  c.save(); c.translate(cx,cy); c.rotate(p*4);
+  for(let i=0;i<6;i++){ c.rotate(Math.PI/3); c.beginPath(); c.moveTo(0,-H*0.1); c.lineTo(0,-H*0.18); c.stroke(); } c.restore(); c.restore(); }
+function fxBlackflash(c,p,col,s,d,W,H){
+  if(p<0.5){ const t=p/0.5, e=lerp(s,d,t); gdot(c,e.x,e.y,H*0.04,"#222",0.9); }
+  else{ const t=(p-0.5)/0.5, a=1-t, r=H*0.05+t*H*0.18;
+    c.save(); c.globalAlpha=a; c.strokeStyle="#000"; c.lineWidth=H*0.02; c.beginPath(); c.arc(d.x,d.y,r,0,7); c.stroke(); c.restore();
+    gdot(c,d.x,d.y,r*0.7,"#ff3a3a",a*0.9);
+    for(let i=0;i<5;i++){ const ang=i*1.3+t*3; gline(c,d.x,d.y,d.x+Math.cos(ang)*r*1.6,d.y+Math.sin(ang)*r*1.6,H*0.008,"#ff5a5a",a); } } }
+function fxShadow(c,p,col,d,W,H){ const a=Math.sin(p*Math.PI); c.save(); c.globalAlpha=a;
+  c.fillStyle="#0a0e16"; c.beginPath(); c.ellipse(d.x,d.y+H*0.08,H*0.12,H*0.04,0,0,7); c.fill();
+  c.strokeStyle=col; c.lineWidth=H*0.02; c.lineCap="round";
+  for(let i=0;i<4;i++){ const ang=-1.2+i*0.5, r=H*0.16*p; c.beginPath(); c.moveTo(d.x,d.y+H*0.06);
+    c.quadraticCurveTo(d.x+Math.cos(ang)*r*0.5,d.y,d.x+Math.cos(ang)*r,d.y-Math.sin(ang)*r-H*0.04); c.stroke(); } c.restore(); }
+function fxNails(c,p,col,d,W,H){ for(let i=0;i<8;i++){ const t=p*1.3-(i%4)*0.08; if(t<0||t>1) continue;
+  const ang=i*0.78, startR=H*0.2*(1-t), x=d.x+Math.cos(ang)*startR, y=d.y+Math.sin(ang)*startR;
+  c.save(); c.globalAlpha=0.9; c.translate(x,y); c.rotate(ang); c.fillStyle=col; c.fillRect(-1,-H*0.02,2,H*0.04); c.restore(); }
+  if(p>0.7) gdot(c,d.x,d.y,H*0.06*(1-p),"#fff",1-p); }
+function fxOdm(c,p,col,s,d,W,H){ const len=W*0.5;
+  for(let i=0;i<2;i++){ const t=Math.min(1,Math.max(0,(p-i*0.18)/0.45)); if(t<=0||t>=1) continue; const a=Math.sin(t*Math.PI);
+    const ang=i===0?-0.5:0.5, cx=d.x+(t-0.5)*Math.cos(ang)*len, cy=d.y+(t-0.5)*Math.sin(ang)*len;
+    const dx=Math.cos(ang)*W*0.08, dy=Math.sin(ang)*W*0.08;
+    gline(c,cx-dx,cy-dy,cx+dx,cy+dy,H*0.02,"#fff",a); gline(c,cx-dx*2,cy-dy*2,cx+dx,cy+dy,H*0.04,col,a*0.4); } }
+function fxOdmspin(c,p,col,d,W,H){ const a=Math.sin(p*Math.PI);
+  for(let i=0;i<7;i++){ const ang=i*0.9+p*9, r=H*0.05+H*0.1*p, x=d.x+Math.cos(ang)*r, y=d.y+Math.sin(ang)*r;
+    const tx=Math.cos(ang+1.57), ty=Math.sin(ang+1.57);
+    gline(c,x-tx*H*0.04,y-ty*H*0.04,x+tx*H*0.04,y+ty*H*0.04,H*0.012,col,a);
+    gline(c,x-tx*H*0.04,y-ty*H*0.04,x+tx*H*0.04,y+ty*H*0.04,H*0.004,"#fff",a*0.9); } }
+function fxTitan(c,p,col,s,d,W,H){
+  if(p<0.45){ const t=p/0.45, y=-H*0.2+(d.y+H*0.1)*t; c.save(); c.globalAlpha=0.95; c.fillStyle=col;
+    c.fillRect(d.x-W*0.08,y-H*0.12,W*0.16,H*0.14); c.fillStyle="rgba(0,0,0,.2)"; c.fillRect(d.x-W*0.08,y-H*0.12,W*0.16,H*0.03); c.restore(); }
+  else{ const t=(p-0.45)/0.55, a=1-t, R=H*0.05+t*H*0.3; c.save(); c.globalAlpha=a; c.strokeStyle="#e8d0b0"; c.lineWidth=H*0.015;
+    c.beginPath(); c.ellipse(d.x,d.y+H*0.04,R,R*0.4,0,0,7); c.stroke(); c.restore();
+    for(let i=0;i<8;i++){ const ang=i*0.78; gdot(c,d.x+Math.cos(ang)*R*0.8,d.y+H*0.04+Math.sin(ang)*R*0.3,H*0.04,"#cdb49a",a*0.5); } } }
+function fxSteam(c,p,col,d,W,H){ for(let i=0;i<10;i++){ const t=p*1.2-(i%5)*0.06; if(t<0||t>1) continue;
+  const a=(1-t)*0.7, x=d.x+((i*37%9)-4)*W*0.02, y=d.y-t*H*0.2; gdot(c,x,y,H*0.05+t*H*0.04,"#f0f0f0",a); }
+  if(p<0.3){ c.save(); c.globalAlpha=(0.3-p)*1.5; c.fillStyle="#fff"; c.fillRect(0,0,W,H); c.restore(); } }
+function fxBite(c,p,col,d,W,H){ const gap=H*0.14*(1-p)+H*0.02, a=Math.sin(p*Math.PI), w=W*0.16;
+  c.save(); c.globalAlpha=a; c.fillStyle=col;
+  for(let half=0;half<2;half++){ const dir=half?1:-1, yo=dir*gap; c.beginPath(); c.moveTo(d.x-w,d.y+yo);
+    for(let i=0;i<=6;i++){ const tx=d.x-w+(2*w)*i/6; c.lineTo(tx,d.y+yo-dir*((i%2)?H*0.04:0)); }
+    c.lineTo(d.x+w,d.y+yo); c.closePath(); c.fill(); } c.restore(); }
+function fxShield(c,p,col,s,d,W,H){ const a=Math.sin(p*Math.PI), R=H*0.12, cx=s.x+(d.x-s.x)*0.18, cy=s.y+(d.y-s.y)*0.18;
+  c.save(); c.globalAlpha=a*0.85; c.strokeStyle=col; c.fillStyle=hexA(col,0.2*a); c.lineWidth=H*0.01;
+  c.beginPath(); for(let i=0;i<6;i++){ const ang=i*Math.PI/3-Math.PI/2, x=cx+Math.cos(ang)*R, y=cy+Math.sin(ang)*R; i?c.lineTo(x,y):c.moveTo(x,y); }
+  c.closePath(); c.fill(); c.stroke(); c.restore(); }
+function fxSpear(c,p,col,s,d,W,H){
+  if(p<0.5){ const t=p/0.5, e=lerp(s,d,t), ang=Math.atan2(d.y-s.y,d.x-s.x);
+    c.save(); c.translate(e.x,e.y); c.rotate(ang); c.globalAlpha=0.95; c.fillStyle="#cdd6e0";
+    c.fillRect(-H*0.05,-2,H*0.1,4); c.fillStyle=col; c.fillRect(H*0.02,-3,H*0.04,6); c.restore(); gdot(c,e.x,e.y,H*0.03,col,0.6); }
+  else{ const t=(p-0.5)/0.5, a=1-t, r=H*0.05+t*H*0.22; gdot(c,d.x,d.y,r,col,a); gdot(c,d.x,d.y,r*0.6,"#fff",a*0.8);
+    for(let i=0;i<8;i++){ const ang=i*0.78; gline(c,d.x,d.y,d.x+Math.cos(ang)*r,d.y+Math.sin(ang)*r,H*0.01,col,a); } } }
+
+const FX={
+  slash:(c,p,col,s,d,W,H)=>fxSlash(c,p,col,d,1,W,H),
+  slash3:(c,p,col,s,d,W,H)=>fxSlash(c,p,col,d,3,W,H),
+  slash5:(c,p,col,s,d,W,H)=>fxSlash(c,p,col,d,5,W,H),
+  punch:fxPunch, kick:fxPunch, flurry:fxFlurry, fire:fxFire, beam:fxBeam,
+  orb:fxOrb, orbRed:fxOrb, projectile:fxProjectile, blackflash:fxBlackflash,
+  odm:fxOdm, titan:fxTitan, steam:fxSteam, shield:fxShield, spear:fxSpear, domain:fxDomain,
+  impact:(c,p,col,s,d,W,H)=>fxImpact(c,p,col,d,W,H),
+  lightning:(c,p,col,s,d,W,H)=>fxLightning(c,p,col,d,W,H),
+  wind:(c,p,col,s,d,W,H)=>fxWind(c,p,col,d,W,H),
+  spark:(c,p,col,s,d,W,H)=>fxSpark(c,p,col,d,W,H),
+  claw:(c,p,col,s,d,W,H)=>fxClaw(c,p,col,d,3,W,H),
+  claw3:(c,p,col,s,d,W,H)=>fxClaw(c,p,col,d,5,W,H),
+  net:(c,p,col,s,d,W,H)=>fxNet(c,p,col,d,W,H),
+  shadow:(c,p,col,s,d,W,H)=>fxShadow(c,p,col,d,W,H),
+  nails:(c,p,col,s,d,W,H)=>fxNails(c,p,col,d,W,H),
+  odmspin:(c,p,col,s,d,W,H)=>fxOdmspin(c,p,col,d,W,H),
+  bite:(c,p,col,s,d,W,H)=>fxBite(c,p,col,d,W,H),
+};
+
+function animateFx(key,color,side){
+  if(window.__FAST) return Promise.resolve();
+  const fn=FX[key]||FX.impact, ctx=fxCtx(); fxSize();
+  const {src,dst,W,H}=fxAnchors(side), dur=key==="domain"?900:540;
+  return new Promise(res=>{
+    const t0=performance.now();
+    (function frame(now){
+      const p=Math.min(1,(now-t0)/dur);
+      ctx.clearRect(0,0,W,H);
+      try{ fn(ctx,p,color,src,dst,W,H); }catch(e){}
+      if(p<1) requestAnimationFrame(frame); else { ctx.clearRect(0,0,W,H); res(); }
+    })(t0);
+  });
+}
+
+/* ---- per-move sound: family timbre + per-move pitch variation ---- */
+function hashStr(s){ let h=0; for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))|0; return Math.abs(h); }
+function aTone(f0,f1,t0,dur,type,vol){ const o=actx.createOscillator(), g=actx.createGain();
+  o.type=type; o.frequency.setValueAtTime(f0,t0); if(f1!=null) o.frequency.exponentialRampToValueAtTime(Math.max(1,f1),t0+dur);
+  g.gain.setValueAtTime(vol,t0); g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  o.connect(g); g.connect(actx.destination); o.start(t0); o.stop(t0+dur+0.02); }
+function aNoise(t0,dur,filt,freq,vol,Q){ const s=actx.createBufferSource(); s.buffer=music.NOISE;
+  const f=actx.createBiquadFilter(); f.type=filt; f.frequency.value=freq; if(Q) f.Q.value=Q;
+  const g=actx.createGain(); g.gain.setValueAtTime(vol,t0); g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  s.connect(f); f.connect(g); g.connect(actx.destination); s.start(t0); s.stop(t0+dur+0.02); }
+const SND={
+  swipe:(d)=>{ const t=actx.currentTime; aNoise(t,0.18,"bandpass",1200+d*120,0.14,1.5); aTone(900+d*60,300,t,0.16,"sawtooth",0.05); },
+  thud:(d)=>{ const t=actx.currentTime; aTone(180+d*10,50,t,0.16,"square",0.16); aNoise(t,0.08,"lowpass",400,0.1); },
+  flurry:()=>{ for(let i=0;i<6;i++){ const t=actx.currentTime+i*0.05; aTone(220+(i%2)*120,90,t,0.06,"square",0.08); } },
+  quake:()=>{ const t=actx.currentTime; aTone(90,40,t,0.5,"square",0.2); aNoise(t,0.4,"lowpass",200,0.14); },
+  fire:()=>{ const t=actx.currentTime; aNoise(t,0.35,"highpass",800,0.12); aTone(140,60,t,0.3,"sawtooth",0.08); },
+  air:(d)=>{ const t=actx.currentTime; aNoise(t,0.3,"bandpass",2200+d*200,0.1,0.7); },
+  shimmer:(d)=>{ for(let i=0;i<5;i++){ const t=actx.currentTime+i*0.05; aTone(1400+i*200+d*50,null,t,0.08,"triangle",0.05); } },
+  beam:(d)=>{ const t=actx.currentTime; aTone(200,1200+d*80,t,0.18,"sawtooth",0.06);
+    aTone(1200,300,t+0.15,0.35,"square",0.1); aNoise(t+0.15,0.3,"bandpass",900,0.08,0.8); },
+  zap:()=>{ const t=actx.currentTime; aTone(2400,600,t,0.12,"sawtooth",0.1); aNoise(t,0.12,"highpass",3000,0.12); },
+  crack:()=>{ const t=actx.currentTime; aNoise(t,0.12,"bandpass",1600,0.18,2); aTone(120,40,t,0.18,"square",0.16); },
+  dark:(d)=>{ const t=actx.currentTime; aTone(140+d*8,60,t,0.3,"triangle",0.1); aNoise(t,0.25,"lowpass",600,0.08); },
+  blip:(d,h)=>{ for(let i=0;i<5;i++){ const t=actx.currentTime+i*0.04; aTone(1200+(h%5)*100-i*80,null,t,0.04,"square",0.06); } },
+  shield:()=>{ const t=actx.currentTime; aTone(900,1300,t,0.1,"triangle",0.08); aTone(1300,null,t+0.08,0.18,"triangle",0.06); },
+  boom:()=>{ const t=actx.currentTime; aTone(70,30,t,0.7,"square",0.2); aTone(400,120,t,0.5,"sawtooth",0.06); aNoise(t,0.5,"lowpass",300,0.1); },
+};
+const SND_FAMILY={ slash:"swipe",slash3:"swipe",slash5:"swipe",odm:"swipe",odmspin:"swipe",claw:"swipe",claw3:"swipe",bite:"swipe",
+  punch:"thud",kick:"thud",impact:"thud",flurry:"flurry",titan:"quake",
+  fire:"fire",steam:"air",wind:"air",spark:"shimmer",
+  beam:"beam",orb:"beam",orbRed:"beam",spear:"beam",
+  lightning:"zap",blackflash:"crack",shadow:"dark",net:"dark",
+  projectile:"blip",nails:"blip",shield:"shield",domain:"boom" };
+function playMoveSound(key,name){
+  try{ ensureCtx(); if(!music.NOISE) music.NOISE=buildNoise();
+    const h=hashStr(name||""), d=(h%7)-3; (SND[SND_FAMILY[key]||"thud"])(d,h);
+  }catch(e){}
+}
+
 function buildMenu(){
   const menu=$("menu"); menu.innerHTML="";
   me.moves.forEach(mv=>{
     const b=document.createElement("button");
-    b.className="move"; b.textContent=mv[0];
+    b.className="move"; b.textContent=mv.n;
     b.onclick=()=>chooseMove(mv);
     menu.appendChild(b);
   });
@@ -821,7 +1280,7 @@ async function chooseMove(move){
 }
 
 async function doAttack(side,mv){
-  const [mvName,mvPow,flag]=mv;
+  const {n:mvName,p:mvPow,fx:fxKey,c:color,x:flag}=mv;
   const att = side==="me"?me:foe;
   const def = side==="me"?foe:me;
   await typeText(`${att.name} used ${mvName}!`);
@@ -835,7 +1294,7 @@ async function doAttack(side,mv){
     ({dmg,crit}=calcDamage(att,def,mvPow));
   }
 
-  // animate attacker lunge + defender flash/shake
+  // animate attacker lunge
   const attSpr = side==="me"?$("meSprite"):$("foeSprite");
   const defSpr = side==="me"?$("foeSprite"):$("meSprite");
   const baseT = side==="me"?"scaleX(-1)":"";
@@ -844,14 +1303,19 @@ async function doAttack(side,mv){
   await wait(120);
   attSpr.style.transform = baseT;
 
-  crit?sfx.crit():sfx.hit();
+  // unique attack effect + sound for this move
+  playMoveSound(fxKey,mvName);
+  const fxDone = animateFx(fxKey,color,side);
+  await wait(fxKey==="domain"?420:200); // let the effect travel/land
+  if(crit) sfx.crit();
   defSpr.classList.add("flash"); defSpr.classList.add("shake");
 
   if(side==="me"){ foeHP=Math.max(0,foeHP-dmg); setHP("foe"); }
   else{ meHP=Math.max(0,meHP-dmg); setHP("me"); }
 
-  await wait(360);
+  await wait(300);
   defSpr.classList.remove("flash"); defSpr.classList.remove("shake");
+  await fxDone;
 
   if(crit) await typeText("A critical hit!");
 }

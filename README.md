@@ -12,7 +12,8 @@ python3 -m http.server 8731
 No build step, no dependencies — a single self-contained HTML file.
 
 ## Features
-- **9 Straw Hats** as playable fighters (Luffy, Zoro, Nami, Sanji, Usopp, Chopper, Robin, Franky, Brook), each with unique stats and 4 themed moves.
+- **19 fighters across 3 series** — One Piece (Luffy, Zoro, Nami, Sanji, Usopp, Chopper, Robin, Franky, Brook), Jujutsu Kaisen (Gojo, Yuji, Megumi, Nobara, Sukuna), and Attack on Titan (Eren, Mikasa, Levi, Armin, Titan). Each has unique stats and 4 themed moves. Battles are cross-series — pick anyone, face a random rival.
+- **Per-move attack FX** — every move plays its own animated effect (slashes, beams, fireballs, lightning, ODM blade-spins, titan smashes, domain expansions, etc.) and its own synthesized sound, all generated in code.
 - **Procedural pixel-art sprites** drawn entirely in code on `<canvas>` — no image assets.
 - **Pokémon Gen-1-style battle UI**: typed-out text box, draining HP bars, 2×2 move menu, sprite slide-ins, hit flash + screen shake, critical hits.
 - **Simplified damage model** with speed-based turn order; battles resolve in ~5 turns.
