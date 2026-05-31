@@ -236,6 +236,24 @@
     box-shadow:0 0 0 4px #ffd23f, 0 14px 40px rgba(0,0,0,.5);}
   .toast.show{display:block;}
 
+  /* battle enter/exit transition (curtain + flash) */
+  #trans{ position:absolute; inset:0; z-index:70; pointer-events:none; display:none; }
+  #trans.run{ display:block; }
+  .tbar{ position:absolute; left:0; right:0; height:52%; background:#070b12; }
+  .tbar-top{ top:0; transform:translateY(-110%); }
+  .tbar-bot{ bottom:0; transform:translateY(110%); }
+  .tflash{ position:absolute; inset:0; background:#fff; opacity:0; }
+  #trans.close .tbar-top{ animation:barInTop .32s ease-in forwards; }
+  #trans.close .tbar-bot{ animation:barInBot .32s ease-in forwards; }
+  #trans.close .tflash{ animation:flashIn .42s ease-out; }
+  #trans.open .tbar-top{ animation:barOutTop .34s ease-out forwards; }
+  #trans.open .tbar-bot{ animation:barOutBot .34s ease-out forwards; }
+  @keyframes barInTop{ from{transform:translateY(-110%)} to{transform:translateY(0)} }
+  @keyframes barInBot{ from{transform:translateY(110%)} to{transform:translateY(0)} }
+  @keyframes barOutTop{ from{transform:translateY(0)} to{transform:translateY(-110%)} }
+  @keyframes barOutBot{ from{transform:translateY(0)} to{transform:translateY(110%)} }
+  @keyframes flashIn{ 0%{opacity:0} 38%{opacity:.85} 100%{opacity:0} }
+
   #muteBtn{position:absolute; top:44px; right:12px; z-index:50;
     width:36px; height:36px; border:none; border-radius:9px; cursor:pointer;
     background:rgba(12,18,30,.55); font-size:18px; line-height:1;
@@ -257,6 +275,7 @@
     </span>
   </div>
   <button id="muteBtn" title="Toggle music">🔊</button>
+  <div id="trans"><span class="tbar tbar-top"></span><span class="tbar tbar-bot"></span><span class="tflash"></span></div>
 
   <!-- TITLE -->
   <div id="title" class="screen active">
@@ -805,6 +824,23 @@ const sfx={
   // shimmer chime when a combo move (Hollow Purple) unlocks
   unlock:()=>{ [660,880,1100,1320,1760].forEach((f,i)=>setTimeout(()=>{
     beep(f,.20,"triangle",.05); beep(f*1.5,.12,"sine",.022); }, i*70)); },
+  // rising sting when a battle begins
+  battleStart:()=>{ try{ ensureCtx(); const t=actx.currentTime;
+    const o=actx.createOscillator(),g=actx.createGain(); o.type="sawtooth";
+    o.frequency.setValueAtTime(170,t); o.frequency.exponentialRampToValueAtTime(1500,t+0.32);
+    g.gain.setValueAtTime(0.07,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.4);
+    o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t+0.42);
+    setTimeout(()=>{ beep(988,.12,"square",.06); beep(660,.2,"square",.05); },330);
+  }catch(e){} },
+  // descending sting when leaving battle
+  battleEnd:()=>{ try{ ensureCtx(); const t=actx.currentTime;
+    const o=actx.createOscillator(),g=actx.createGain(); o.type="sawtooth";
+    o.frequency.setValueAtTime(900,t); o.frequency.exponentialRampToValueAtTime(150,t+0.4);
+    g.gain.setValueAtTime(0.06,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.45);
+    o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t+0.47);
+  }catch(e){} },
+  // classic two-beep warning when HP is critically low
+  lowHp:()=>{ beep(1180,.09,"square",.055); setTimeout(()=>beep(1180,.09,"square",.055),150); },
 };
 
 /* ============================================================
@@ -854,10 +890,31 @@ const SONG=(()=>{
   const harm=[];
   roots.forEach(r=>{ const t=chordTones[r]; for(let i=0;i<8;i++) harm.push([t[i%3],.5]); });
   const total=lead.reduce((s,n)=>s+n[1],0); // 32 beats
-  return {bpm:178, lead, bass, harm, totalBeats:total, bars:8};
+  return {bpm:178, lead, bass, harm, totalBeats:total, bars:8, drive:"punk"};
 })();
 
-const music={playing:false, enabled:true, master:null, loopDur:0, nextLoopTime:0, timer:null, NOISE:null};
+// ---- BATTLE theme: original tense, driving E-minor chiptune (~188bpm) ----
+const BATTLE_SONG=(()=>{
+  const lead=[
+    ["E5",.5],["E5",.5],["B4",.5],["E5",.5],["G5",.5],["F#5",.5],["E5",1],
+    ["E5",.5],["D5",.5],["B4",.5],["D5",.5],["E5",1],["B4",1],
+    ["C5",.5],["C5",.5],["G5",.5],["C5",.5],["B5",.5],["A5",.5],["G5",1],
+    ["A5",.5],["G5",.5],["F#5",.5],["E5",.5],["F#5",1],["D5",1],
+    ["E5",.5],["G5",.5],["B5",1],["A5",.5],["G5",.5],["F#5",1],
+    ["E5",.5],["E5",.5],["G5",.5],["F#5",.5],["E5",.5],["D5",.5],["B4",1],
+    ["C5",.5],["B4",.5],["A4",.5],["B4",.5],["C5",1],["E5",1],
+    ["D5",.5],["F#5",.5],["A5",1],["B5",1],["E5",1],
+  ];
+  const roots=["E2","C2","G2","D2","E2","C2","A2","B2"];
+  const bass=[]; roots.forEach(r=>{ for(let i=0;i<8;i++) bass.push([r,.5]); });
+  const chordTones={ E2:["G4","B4","E5"], C2:["E4","G4","C5"], G2:["G4","B4","D5"],
+    D2:["F#4","A4","D5"], A2:["A4","C5","E5"], B2:["F#4","B4","D5"] };
+  const harm=[]; roots.forEach(r=>{ const t=chordTones[r]; for(let i=0;i<8;i++) harm.push([t[i%3],.5]); });
+  const total=lead.reduce((s,n)=>s+n[1],0);
+  return {bpm:188, lead, bass, harm, totalBeats:total, bars:8, drive:"rock"};
+})();
+
+const music={playing:false, enabled:true, master:null, song:SONG, loopDur:0, nextLoopTime:0, timer:null, NOISE:null};
 
 function buildNoise(){
   const len=Math.floor(actx.sampleRate*0.5);
@@ -906,17 +963,17 @@ function playLine(track,at,beat,voice){
   for(const [note,dur] of track){ voice(noteFreq(note),t,dur*beat); t+=dur*beat; }
 }
 function scheduleSong(at){
-  const beat=60/SONG.bpm, eighth=beat/2;
-  playLine(SONG.lead, at, beat, (f,t,d)=>pulse(f,t,d,0.16));
-  playLine(SONG.harm, at, beat, (f,t,d)=>pulse(f,t,d,0.05));
-  playLine(SONG.bass, at, beat, (f,t,d)=>triBass(f,t,d,0.22));
-  // drums: punk beat, 8 eighths/bar over 8 bars
-  for(let bar=0;bar<SONG.bars;bar++){
+  const song=music.song, beat=60/song.bpm, eighth=beat/2;
+  playLine(song.lead, at, beat, (f,t,d)=>pulse(f,t,d,0.16));
+  playLine(song.harm, at, beat, (f,t,d)=>pulse(f,t,d,0.05));
+  playLine(song.bass, at, beat, (f,t,d)=>triBass(f,t,d,0.22));
+  for(let bar=0;bar<song.bars;bar++){
     for(let e=0;e<8;e++){
       const t=at+(bar*8+e)*eighth;
       if(e===0||e===4) drumHit(t,"kick");
       if(e===2||e===6) drumHit(t,"snare");
-      drumHit(t,"hat");
+      // battle theme rides a busier hat groove
+      if(song.drive==="rock"||e%2===0) drumHit(t,"hat");
     }
   }
 }
@@ -927,21 +984,43 @@ function musicTick(){
     music.nextLoopTime += music.loopDur;
   }
 }
-function startMusic(){
+function startMusic(song){
   if(music.playing || !music.enabled) return;
   try{
     ensureCtx();
     music.NOISE=music.NOISE||buildNoise();
+    music.song=song||music.song||SONG;
     music.master=actx.createGain();
     music.master.gain.setValueAtTime(0.0001,actx.currentTime);
     music.master.gain.linearRampToValueAtTime(0.5,actx.currentTime+1.2); // gentle fade-in
     music.master.connect(actx.destination);
-    music.loopDur=SONG.totalBeats*60/SONG.bpm;
+    music.loopDur=music.song.totalBeats*60/music.song.bpm;
     music.nextLoopTime=actx.currentTime+0.12;
     music.playing=true;
     music.timer=setInterval(musicTick,50);
     musicTick();
   }catch(e){ console.warn("music failed",e); }
+}
+// crossfade to a different track (e.g. battle theme <-> menu theme)
+function switchTrack(song){
+  if(!music.enabled){ music.song=song; return; }
+  if(!music.playing){ startMusic(song); return; }
+  if(music.song===song) return;
+  try{
+    ensureCtx();
+    const old=music.master;
+    if(old){ old.gain.cancelScheduledValues(actx.currentTime);
+      old.gain.setValueAtTime(old.gain.value,actx.currentTime);
+      old.gain.linearRampToValueAtTime(0.0001,actx.currentTime+0.35); }
+    music.master=actx.createGain();
+    music.master.gain.setValueAtTime(0.0001,actx.currentTime);
+    music.master.gain.linearRampToValueAtTime(0.5,actx.currentTime+0.5);
+    music.master.connect(actx.destination);
+    music.song=song;
+    music.loopDur=song.totalBeats*60/song.bpm;
+    music.nextLoopTime=actx.currentTime+0.06;
+    musicTick();
+  }catch(e){ console.warn("switchTrack failed",e); }
 }
 function setMusicEnabled(on){
   music.enabled=on;
@@ -957,6 +1036,19 @@ function setMusicEnabled(on){
 const $=id=>document.getElementById(id);
 const screens={title:$("title"),select:$("select"),create:$("create"),battle:$("battle")};
 function show(name){ for(const k in screens) screens[k].classList.toggle("active",k===name); }
+
+// curtain+flash transition; midCallback runs while the screen is fully covered
+function playTransition(midCallback, sound){
+  return new Promise(res=>{
+    if(window.__FAST){ if(midCallback) midCallback(); res(); return; }
+    const t=$("trans"); if(!t){ if(midCallback) midCallback(); res(); return; }
+    if(sound) sound();
+    t.classList.remove("open"); t.classList.add("run","close");
+    setTimeout(()=>{ if(midCallback) midCallback(); }, 330);
+    setTimeout(()=>{ t.classList.remove("close"); t.classList.add("open"); }, 360);
+    setTimeout(()=>{ t.classList.remove("run","open"); res(); }, 720);
+  });
+}
 
 let me=null, foe=null, meHP=0, foeHP=0, busy=false;
 let usedMoves={me:new Set(), foe:new Set()}; // moves each side has used this battle
@@ -993,6 +1085,9 @@ window.addEventListener("load",()=>{
   const d=new URLSearchParams(location.search).get("debug");
   if(d==="select"){ show("select"); }
   else if(d==="create"){ show("create"); }
+  else if(d==="trans"){ show("select"); const t=$("trans"); t.classList.add("run","close");
+    [...t.querySelectorAll(".tbar")].forEach(b=>{ b.style.animationDelay="-0.3s"; b.style.animationPlayState="paused"; });
+    const fl=t.querySelector(".tflash"); fl.style.animationDelay="-0.16s"; fl.style.animationPlayState="paused"; }
   else if(d==="poster"){
     const qp=new URLSearchParams(location.search);
     customChar=buildPirate(qp.get("n")||"Crimson Jack", qp.get("f")||"Flame-Flame Fruit",
@@ -1252,8 +1347,8 @@ function startBattle(chosen, opponent){
   setHP("me"); setHP("foe");
   buildMenu();
   $("menu").classList.remove("show");
-  show("battle");
-  introSequence();
+  switchTrack(BATTLE_SONG);                                   // swap to battle theme
+  playTransition(()=>show("battle"), sfx.battleStart).then(introSequence);
 }
 
 async function introSequence(){
@@ -1634,25 +1729,26 @@ function aNoise(t0,dur,filt,freq,vol,Q){ const s=actx.createBufferSource(); s.bu
   const f=actx.createBiquadFilter(); f.type=filt; f.frequency.value=freq; if(Q) f.Q.value=Q;
   const g=actx.createGain(); g.gain.setValueAtTime(vol,t0); g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
   s.connect(f); f.connect(g); g.connect(actx.destination); s.start(t0); s.stop(t0+dur+0.02); }
+// each family takes a pitch factor `k` (per-move) so every attack sounds distinct
 const SND={
-  swipe:(d)=>{ const t=actx.currentTime; aNoise(t,0.18,"bandpass",1200+d*120,0.14,1.5); aTone(900+d*60,300,t,0.16,"sawtooth",0.05); },
-  thud:(d)=>{ const t=actx.currentTime; aTone(180+d*10,50,t,0.16,"square",0.16); aNoise(t,0.08,"lowpass",400,0.1); },
-  flurry:()=>{ for(let i=0;i<6;i++){ const t=actx.currentTime+i*0.05; aTone(220+(i%2)*120,90,t,0.06,"square",0.08); } },
-  quake:()=>{ const t=actx.currentTime; aTone(90,40,t,0.5,"square",0.2); aNoise(t,0.4,"lowpass",200,0.14); },
-  fire:()=>{ const t=actx.currentTime; aNoise(t,0.35,"highpass",800,0.12); aTone(140,60,t,0.3,"sawtooth",0.08); },
-  air:(d)=>{ const t=actx.currentTime; aNoise(t,0.3,"bandpass",2200+d*200,0.1,0.7); },
-  shimmer:(d)=>{ for(let i=0;i<5;i++){ const t=actx.currentTime+i*0.05; aTone(1400+i*200+d*50,null,t,0.08,"triangle",0.05); } },
-  beam:(d)=>{ const t=actx.currentTime; aTone(200,1200+d*80,t,0.18,"sawtooth",0.06);
-    aTone(1200,300,t+0.15,0.35,"square",0.1); aNoise(t+0.15,0.3,"bandpass",900,0.08,0.8); },
-  zap:()=>{ const t=actx.currentTime; aTone(2400,600,t,0.12,"sawtooth",0.1); aNoise(t,0.12,"highpass",3000,0.12); },
-  crack:()=>{ const t=actx.currentTime; aNoise(t,0.12,"bandpass",1600,0.18,2); aTone(120,40,t,0.18,"square",0.16); },
-  dark:(d)=>{ const t=actx.currentTime; aTone(140+d*8,60,t,0.3,"triangle",0.1); aNoise(t,0.25,"lowpass",600,0.08); },
-  blip:(d,h)=>{ for(let i=0;i<5;i++){ const t=actx.currentTime+i*0.04; aTone(1200+(h%5)*100-i*80,null,t,0.04,"square",0.06); } },
-  shield:()=>{ const t=actx.currentTime; aTone(900,1300,t,0.1,"triangle",0.08); aTone(1300,null,t+0.08,0.18,"triangle",0.06); },
-  boom:()=>{ const t=actx.currentTime; aTone(70,30,t,0.7,"square",0.2); aTone(400,120,t,0.5,"sawtooth",0.06); aNoise(t,0.5,"lowpass",300,0.1); },
-  hollow:()=>{ const t=actx.currentTime; // blue + red charge converging, then erasing boom
-    aTone(280,720,t,0.42,"sine",0.07); aTone(1000,520,t,0.42,"sawtooth",0.06);
-    aTone(700,80,t+0.45,0.55,"square",0.18); aTone(380,90,t+0.45,0.5,"sawtooth",0.07); aNoise(t+0.45,0.55,"lowpass",420,0.12); },
+  swipe:(k)=>{ const t=actx.currentTime; aNoise(t,0.18,"bandpass",1200*k,0.14,1.6); aTone(900*k,300*k,t,0.16,"sawtooth",0.05); },
+  thud:(k)=>{ const t=actx.currentTime; aTone(190*k,55*k,t,0.16,"square",0.15); aNoise(t,0.08,"lowpass",420*k,0.1); },
+  flurry:(k)=>{ for(let i=0;i<6;i++){ const t=actx.currentTime+i*0.05; aTone((220+(i%2)*120)*k,90*k,t,0.06,"square",0.08); } },
+  quake:(k)=>{ const t=actx.currentTime; aTone(95*k,40*k,t,0.5,"square",0.2); aNoise(t,0.4,"lowpass",220*k,0.14); },
+  fire:(k)=>{ const t=actx.currentTime; aNoise(t,0.35,"highpass",800*k,0.12); aTone(150*k,60*k,t,0.3,"sawtooth",0.08); },
+  air:(k)=>{ const t=actx.currentTime; aNoise(t,0.3,"bandpass",2100*k,0.1,0.7); },
+  shimmer:(k)=>{ for(let i=0;i<5;i++){ const t=actx.currentTime+i*0.05; aTone((1400+i*200)*k,null,t,0.08,"triangle",0.05); } },
+  beam:(k)=>{ const t=actx.currentTime; aTone(200*k,1200*k,t,0.18,"sawtooth",0.06);
+    aTone(1200*k,300*k,t+0.15,0.35,"square",0.1); aNoise(t+0.15,0.3,"bandpass",900*k,0.08,0.8); },
+  zap:(k)=>{ const t=actx.currentTime; aTone(2300*k,600*k,t,0.12,"sawtooth",0.1); aNoise(t,0.12,"highpass",3000*k,0.12); },
+  crack:(k)=>{ const t=actx.currentTime; aNoise(t,0.12,"bandpass",1600*k,0.18,2); aTone(130*k,45*k,t,0.18,"square",0.16); },
+  dark:(k)=>{ const t=actx.currentTime; aTone(150*k,60*k,t,0.3,"triangle",0.1); aNoise(t,0.25,"lowpass",620*k,0.08); },
+  blip:(k)=>{ for(let i=0;i<5;i++){ const t=actx.currentTime+i*0.04; aTone((1300-i*80)*k,null,t,0.04,"square",0.06); } },
+  shield:(k)=>{ const t=actx.currentTime; aTone(900*k,1300*k,t,0.1,"triangle",0.08); aTone(1300*k,null,t+0.08,0.18,"triangle",0.06); },
+  boom:(k)=>{ const t=actx.currentTime; aTone(72*k,30*k,t,0.7,"square",0.2); aTone(400*k,120*k,t,0.5,"sawtooth",0.06); aNoise(t,0.5,"lowpass",320*k,0.1); },
+  hollow:(k)=>{ const t=actx.currentTime; // blue + red charge converging, then erasing boom
+    aTone(280*k,720*k,t,0.42,"sine",0.07); aTone(1000*k,520*k,t,0.42,"sawtooth",0.06);
+    aTone(700*k,80*k,t+0.45,0.55,"square",0.18); aTone(380*k,90*k,t+0.45,0.5,"sawtooth",0.07); aNoise(t+0.45,0.55,"lowpass",420,0.12); },
 };
 const SND_FAMILY={ slash:"swipe",slash3:"swipe",slash5:"swipe",odm:"swipe",odmspin:"swipe",claw:"swipe",claw3:"swipe",bite:"swipe",
   punch:"thud",kick:"thud",impact:"thud",flurry:"flurry",titan:"quake",
@@ -1668,7 +1764,9 @@ const SND_FAMILY={ slash:"swipe",slash3:"swipe",slash5:"swipe",odm:"swipe",odmsp
   crystal:"shield",rumbling:"quake",shrine:"boom" };
 function playMoveSound(key,name){
   try{ ensureCtx(); if(!music.NOISE) music.NOISE=buildNoise();
-    const h=hashStr(name||""), d=(h%7)-3; (SND[SND_FAMILY[key]||"thud"])(d,h);
+    // per-move pitch: ±7 semitones spread keyed off the move name -> every attack is distinct
+    const h=hashStr(name||""), semis=(h%15)-7, k=Math.pow(2,semis/12);
+    (SND[SND_FAMILY[key]||"thud"])(k,h);
   }catch(e){}
 }
 
@@ -1684,6 +1782,7 @@ function buildMenu(){
 
 async function playerTurn(){
   busy=false;
+  if(meHP>0 && meHP<=me.hp*0.2) sfx.lowHp();   // remind you while choosing if HP is in the red
   // announce any move that just became unlocked (e.g. Hollow Purple)
   const justUnlocked=[];
   for(const mv of me.moves){
@@ -1769,7 +1868,8 @@ async function doAttack(side,mv){
   defSpr.classList.add("flash"); defSpr.classList.add("shake");
 
   if(side==="me"){ foeHP=Math.max(0,foeHP-dmg); setHP("foe"); }
-  else{ meHP=Math.max(0,meHP-dmg); setHP("me"); }
+  else{ meHP=Math.max(0,meHP-dmg); setHP("me");
+    if(meHP>0 && meHP<=me.hp*0.2) sfx.lowHp(); }   // warn when HP drops into the red
 
   await wait(300);
   defSpr.classList.remove("flash"); defSpr.classList.remove("shake");
@@ -1798,11 +1898,13 @@ async function endBattle(){
   const back=()=>{
     document.removeEventListener("click",back);
     toast.classList.remove("show");
-    // reset sprite transforms
-    $("meSprite").style.transform="scaleX(-1)"; $("meSprite").style.opacity=1;
-    $("foeSprite").style.transform=""; $("foeSprite").style.opacity=1;
-    if(pendingReturn){ const r=pendingReturn; pendingReturn=null; r(); }
-    else show("select");
+    switchTrack(SONG);                                        // back to menu theme
+    playTransition(()=>{
+      $("meSprite").style.transform="scaleX(-1)"; $("meSprite").style.opacity=1;
+      $("foeSprite").style.transform=""; $("foeSprite").style.opacity=1;
+      if(pendingReturn){ const r=pendingReturn; pendingReturn=null; r(); }
+      else show("select");
+    }, sfx.battleEnd);
   };
   setTimeout(()=>document.addEventListener("click",back),400);
 }
