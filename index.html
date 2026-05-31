@@ -639,6 +639,9 @@ const sfx={
   faint:()=>{beep(330,.12);setTimeout(()=>beep(247,.18),100);setTimeout(()=>beep(165,.3),240);},
   win:()=>{[523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,.16,"square",.05),i*120));},
   select:()=>beep(880,.06,"square",.04),
+  // shimmer chime when a combo move (Hollow Purple) unlocks
+  unlock:()=>{ [660,880,1100,1320,1760].forEach((f,i)=>setTimeout(()=>{
+    beep(f,.20,"triangle",.05); beep(f*1.5,.12,"sine",.022); }, i*70)); },
 };
 
 /* ============================================================
@@ -1337,6 +1340,7 @@ async function playerTurn(){
   for(const mv of me.moves){
     if(mv.req && !announced.has(mv.n) && !isLocked(mv,"me")){
       announced.add(mv.n); justUnlocked.push(mv);
+      sfx.unlock();
       await typeText(`Blue and Red become one — ${mv.n} is ready!`);
     }
   }
