@@ -115,6 +115,8 @@
   .move:hover{background:#ffe9a8;}
   .move:active{transform:translateY(2px);}
   .move:disabled{opacity:.45; cursor:default; transform:none; background:var(--panel);}
+  .move.locked{opacity:.5; font-style:italic; background:repeating-linear-gradient(
+    45deg,#ece9dd,#ece9dd 6px,#e0ddd0 6px,#e0ddd0 12px); color:#6a6a5a;}
 
   .cursor-hint{position:absolute; bottom:6px; right:14px; font-size:11px; color:#fff;
     opacity:.6; pointer-events:none;}
@@ -289,7 +291,7 @@ const CHARS = [
     moves:[
       {n:"Lapse: Blue",p:64,fx:"orb",c:"#4aa0ff"},
       {n:"Reversal: Red",p:70,fx:"orbRed",c:"#ff4a4a"},
-      {n:"Hollow Purple",p:92,fx:"hollow",c:"#a64ad0"},
+      {n:"Hollow Purple",p:92,fx:"hollow",c:"#a64ad0",req:["Lapse: Blue","Reversal: Red"]},
       {n:"Unlimited Void",p:80,fx:"domain",c:"#6a8aff"} ] },
 
   { id:"yuji", name:"YUJI", role:"Vessel", series:"Jujutsu Kaisen",
@@ -783,6 +785,10 @@ const screens={title:$("title"),select:$("select"),battle:$("battle")};
 function show(name){ for(const k in screens) screens[k].classList.toggle("active",k===name); }
 
 let me=null, foe=null, meHP=0, foeHP=0, busy=false;
+let usedMoves={me:new Set(), foe:new Set()}; // moves each side has used this battle
+let announced=new Set();                     // unlock messages already shown this battle
+// a move with `req` is locked until that side has used every prerequisite move
+function isLocked(mv, side){ return !!(mv.req && !mv.req.every(n=>usedMoves[side].has(n))); }
 
 /* ----- build roster cards ----- */
 const roster=$("roster");
@@ -866,6 +872,34 @@ window.addEventListener("load",()=>{
     })();
     return;
   }
+  else if(d==="lock"){
+    // verify Hollow Purple stays locked until BOTH Lapse: Blue and Reversal: Red are used
+    window.__FAST=true;
+    me=CHARS.find(c=>c.id==="gojo"); foe=CHARS[0]; meHP=me.hp; foeHP=foe.hp;
+    usedMoves={me:new Set(),foe:new Set()}; announced=new Set();
+    renderChar($("meSprite"),me); renderChar($("foeSprite"),foe);
+    $("meName").textContent=me.name; $("foeName").textContent=foe.name;
+    setHP("me"); setHP("foe"); buildMenu();
+    $("meSprite").style.opacity=1; $("foeSprite").style.opacity=1; show("battle");
+    const hp=me.moves.find(m=>m.req);
+    const blue=me.moves.find(m=>m.n==="Lapse: Blue");
+    const red=me.moves.find(m=>m.n==="Reversal: Red");
+    (async()=>{
+      const l0=isLocked(hp,"me");            // locked at start
+      await doAttack("me",blue);
+      const l1=isLocked(hp,"me");            // still locked (red missing)
+      await doAttack("me",red);
+      const l2=isLocked(hp,"me");            // now unlocked
+      setMenuEnabled(true);
+      const btn=[...$("menu").children].find(b=>b._move===hp);
+      const btnReady=!btn.disabled && !btn.textContent.includes("🔒");
+      const ok = l0===true && l1===true && l2===false && btnReady;
+      $("toast").textContent=ok?"LOCK PASS ✓":"LOCK FAIL ✗"; $("toast").classList.add("show");
+      $("textbox").textContent=`${ok?"LOCK PASS ✓":"LOCK FAIL ✗"} — start=${l0}, afterBlue=${l1}, afterBoth=${l2}, btnReady=${btnReady}`;
+      $("textbox").style.fontSize="14px";
+    })();
+    return;
+  }
   else if(d==="fx"){
     const qp=new URLSearchParams(location.search);
     const one=qp.get("one"), pv=parseFloat(qp.get("p")||"0.5");
@@ -946,10 +980,13 @@ window.addEventListener("load",()=>{
     return;
   }
   else if(d==="battle"){
-    me=CHARS[0]; foe=CHARS[1]; meHP=me.hp; foeHP=foe.hp;
+    const who=new URLSearchParams(location.search).get("char");
+    me=CHARS.find(c=>c.id===who)||CHARS[0];
+    foe=CHARS.find(c=>c.id!==me.id); meHP=me.hp; foeHP=foe.hp;
+    usedMoves={me:new Set(),foe:new Set()}; announced=new Set();
     renderChar($("meSprite"),me); renderChar($("foeSprite"),foe);
     $("meName").textContent=me.name; $("foeName").textContent=foe.name;
-    setHP("me"); setHP("foe"); buildMenu();
+    setHP("me"); setHP("foe"); buildMenu(); setMenuEnabled(true);
     $("textbox").textContent=`What will ${me.name} do?`;
     $("menu").classList.add("show");
     $("meSprite").style.opacity=1; $("foeSprite").style.opacity=1;
@@ -1001,6 +1038,7 @@ function startBattle(chosen){
   const others=CHARS.filter(c=>c.id!==chosen.id);
   foe=others[Math.floor(Math.random()*others.length)];
   meHP=me.hp; foeHP=foe.hp;
+  usedMoves={me:new Set(), foe:new Set()}; announced=new Set();
 
   renderChar($("meSprite"),me);
   renderChar($("foeSprite"),foe);
@@ -1263,7 +1301,7 @@ function buildMenu(){
   const menu=$("menu"); menu.innerHTML="";
   me.moves.forEach(mv=>{
     const b=document.createElement("button");
-    b.className="move"; b.textContent=mv.n;
+    b.className="move"; b.textContent=mv.n; b._move=mv;
     b.onclick=()=>chooseMove(mv);
     menu.appendChild(b);
   });
@@ -1271,13 +1309,26 @@ function buildMenu(){
 
 async function playerTurn(){
   busy=false;
+  // announce any move that just became unlocked (e.g. Hollow Purple)
+  for(const mv of me.moves){
+    if(mv.req && !announced.has(mv.n) && !isLocked(mv,"me")){
+      announced.add(mv.n);
+      await typeText(`Blue and Red become one — ${mv.n} is ready!`);
+    }
+  }
   setMenuEnabled(true);
   await typeText(`What will ${me.name} do?`);
   $("menu").classList.add("show");
 }
 
 function setMenuEnabled(on){
-  [...$("menu").children].forEach(b=>b.disabled=!on);
+  [...$("menu").children].forEach(b=>{
+    const mv=b._move;
+    const locked = on && isLocked(mv,"me");
+    b.disabled = !on || locked;
+    b.classList.toggle("locked", locked);
+    b.textContent = (locked?"🔒 ":"")+mv.n;
+  });
 }
 
 async function chooseMove(move){
@@ -1285,7 +1336,9 @@ async function chooseMove(move){
   $("menu").classList.remove("show");
   setMenuEnabled(false);
 
-  const foeMove=foe.moves[Math.floor(Math.random()*foe.moves.length)];
+  // foe never picks a move it hasn't unlocked yet
+  const foePool=foe.moves.filter(m=>!isLocked(m,"foe"));
+  const foeMove=foePool[Math.floor(Math.random()*foePool.length)];
   // turn order by speed
   const meFirst = me.spd>=foe.spd;
   const actions = meFirst
@@ -1303,6 +1356,7 @@ async function chooseMove(move){
 
 async function doAttack(side,mv){
   const {n:mvName,p:mvPow,fx:fxKey,c:color,x:flag}=mv;
+  usedMoves[side].add(mvName); // track for combo unlocks (e.g. Hollow Purple)
   const att = side==="me"?me:foe;
   const def = side==="me"?foe:me;
   await typeText(`${att.name} used ${mvName}!`);
