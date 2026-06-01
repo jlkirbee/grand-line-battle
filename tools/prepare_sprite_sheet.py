@@ -62,7 +62,8 @@ def normalize_sheet(
     frame_count: int,
     frame_w: int,
     frame_h: int,
-    safe_margin: int,
+    safe_margin_x: int,
+    safe_margin_y: int,
 ) -> None:
     src = chroma_to_alpha(Image.open(source))
     cell_w = src.width // frame_count
@@ -81,8 +82,8 @@ def normalize_sheet(
         bottom = min(cell.height, bbox[3] + pad)
         crop = cell.crop((left, top, right, bottom))
 
-        max_w = frame_w - safe_margin * 2
-        max_h = frame_h - safe_margin * 2
+        max_w = frame_w - safe_margin_x * 2
+        max_h = frame_h - safe_margin_y * 2
         scale = min(max_w / crop.width, max_h / crop.height)
         resized = crop.resize(
             (max(1, round(crop.width * scale)), max(1, round(crop.height * scale))),
@@ -90,7 +91,7 @@ def normalize_sheet(
         )
 
         x = i * frame_w + (frame_w - resized.width) // 2
-        y = frame_h - resized.height - safe_margin
+        y = frame_h - resized.height - safe_margin_y
         out.alpha_composite(resized, (x, y))
 
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -104,9 +105,22 @@ def main() -> None:
     parser.add_argument("--frames", type=int, default=6)
     parser.add_argument("--frame-width", type=int, default=128)
     parser.add_argument("--frame-height", type=int, default=72)
-    parser.add_argument("--safe-margin", type=int, default=6)
+    parser.add_argument("--safe-margin", type=int, default=None)
+    parser.add_argument("--safe-margin-x", type=int, default=12)
+    parser.add_argument("--safe-margin-y", type=int, default=6)
     args = parser.parse_args()
-    normalize_sheet(args.source, args.output, args.frames, args.frame_width, args.frame_height, args.safe_margin)
+    if args.safe_margin is not None:
+        args.safe_margin_x = args.safe_margin
+        args.safe_margin_y = args.safe_margin
+    normalize_sheet(
+        args.source,
+        args.output,
+        args.frames,
+        args.frame_width,
+        args.frame_height,
+        args.safe_margin_x,
+        args.safe_margin_y,
+    )
 
 
 if __name__ == "__main__":

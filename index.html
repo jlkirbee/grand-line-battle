@@ -223,13 +223,14 @@
     border-radius:0; padding:18px; font-size:clamp(11px,3vw,17px);
     line-height:1.55; display:flex; align-items:center; min-height:0;
     box-shadow:6px 6px 0 rgba(0,0,0,.35); letter-spacing:0;}
-  .menu{flex:1; margin:0; display:none; grid-template-columns:1fr 1fr; grid-auto-rows:1fr; gap:10px;
+  .menu{flex:1; margin:0; display:none; grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-auto-rows:1fr; gap:10px;
     background:var(--panel); border:7px solid var(--panel-edge); border-radius:0; padding:10px;
     box-shadow:6px 6px 0 rgba(0,0,0,.35);}
   .menu.show{display:grid;}
   .move{background:#f2e8cc; border:5px solid var(--panel-edge); border-radius:0; font-family:var(--font-pixel);
     cursor:pointer; font-size:clamp(8px,2vw,13px); letter-spacing:0; text-transform:uppercase;
     display:flex; align-items:center; justify-content:center; text-align:center; padding:4px;
+    min-width:0; overflow:hidden; overflow-wrap:anywhere; word-break:normal; white-space:normal;
     box-shadow:0 5px 0 var(--panel-edge); transition:background .08s, transform .06s, box-shadow .06s;}
   .move:hover{background:#fff0b8;}
   .move:active{transform:translateY(5px); box-shadow:0 0 0 var(--panel-edge);}
@@ -303,7 +304,7 @@
     .textbox{ padding:14px; border-width:6px; font-size:clamp(10px,3.3vw,13px); }
     .menu{ padding:8px; border-width:6px; gap:7px; min-width:0; }
     .move{ min-width:0; overflow:hidden; border-width:4px; box-shadow:0 4px 0 var(--panel-edge);
-      font-size:clamp(7px,2.4vw,10px); line-height:1.3; }
+      font-size:clamp(5px,1.7vw,8px); line-height:1.25; padding:2px; }
   }
 
   /* ===================== LANDSCAPE LAYOUT ===================== */
@@ -773,8 +774,8 @@ const SPRITE_SHEETS=Object.fromEntries(SHEET_IDS.map(id=>[id,{
   frames:SHEET_FRAMES
 }]));
 const FALLBACK_W=64, FALLBACK_H=72;
-const BATTLE_GUTTER_X=256;
-const BATTLE_GUTTER_Y=24;
+const BATTLE_GUTTER_X=8;
+const BATTLE_GUTTER_Y=6;
 function frameIndexFor(spec,state){
   return spec.frames[state] ?? spec.frames.idle ?? 0;
 }
@@ -801,6 +802,7 @@ function computeSheetBounds(spec){
   probe.width=spec.frameWidth; probe.height=spec.frameHeight;
   const ctx=probe.getContext("2d",{willReadFrequently:true});
   spec.bounds={};
+  const union=[spec.frameWidth,spec.frameHeight,0,0];
   for(const [state,frame] of Object.entries(spec.frames)){
     ctx.clearRect(0,0,probe.width,probe.height);
     ctx.drawImage(spec.image,frame*spec.frameWidth,0,spec.frameWidth,spec.frameHeight,
@@ -816,8 +818,14 @@ function computeSheetBounds(spec){
         if(y+1>bottom) bottom=y+1;
       }
     }
-    spec.bounds[state]=right>left && bottom>top ? [left,top,right,bottom] : [0,0,spec.frameWidth,spec.frameHeight];
+    const bounds=right>left && bottom>top ? [left,top,right,bottom] : [0,0,spec.frameWidth,spec.frameHeight];
+    spec.bounds[state]=bounds;
+    union[0]=Math.min(union[0],bounds[0]);
+    union[1]=Math.min(union[1],bounds[1]);
+    union[2]=Math.max(union[2],bounds[2]);
+    union[3]=Math.max(union[3],bounds[3]);
   }
+  spec.layoutBounds=union[2]>union[0] && union[3]>union[1] ? union : [0,0,spec.frameWidth,spec.frameHeight];
 }
 function spriteRenderTarget(canvas,spec){
   const frameW=spec?spec.frameWidth:FALLBACK_W;
@@ -825,15 +833,16 @@ function spriteRenderTarget(canvas,spec){
   if(!isBattleSpriteCanvas(canvas)){
     return {canvasW:frameW,canvasH:frameH,frameW,frameH,dx:0,dy:0};
   }
-  const canvasW=Math.max(frameW+BATTLE_GUTTER_X*2, 576);
-  const canvasH=frameH+BATTLE_GUTTER_Y*2;
+  const layout=spec && spec.layoutBounds ? spec.layoutBounds : [0,0,frameW,frameH];
+  const canvasW=Math.ceil((layout[2]-layout[0])+BATTLE_GUTTER_X*2);
+  const canvasH=Math.ceil((layout[3]-layout[1])+BATTLE_GUTTER_Y*2);
   return {
     canvasW,
     canvasH,
     frameW,
     frameH,
-    dx:Math.floor((canvasW-frameW)/2),
-    dy:BATTLE_GUTTER_Y
+    dx:BATTLE_GUTTER_X-layout[0],
+    dy:BATTLE_GUTTER_Y-layout[1]
   };
 }
 const clampValue=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
@@ -852,13 +861,24 @@ function visibleSpriteBounds(canvas){
   const right=flip ? canvas.width-(target.dx+l) : target.dx+r;
   return {left,top:target.dy+t,right,bottom:target.dy+b};
 }
+function layoutSpriteBounds(canvas){
+  const id=canvas.dataset.charId;
+  const ch=CHARS.find(c=>c.id===id) || {id};
+  const spec=readySheet(id) || SPRITE_SHEETS[id];
+  const target=spriteRenderTarget(canvas,spec);
+  const [l,t,r,b]=spec && spec.layoutBounds ? spec.layoutBounds : frameBoundsFor(spec,canvas.dataset.spriteState||"idle");
+  const flip=shouldFlipChar(ch,desiredFacingForCanvas(canvas));
+  const left=flip ? canvas.width-(target.dx+r) : target.dx+l;
+  const right=flip ? canvas.width-(target.dx+l) : target.dx+r;
+  return {left,top:target.dy+t,right,bottom:target.dy+b};
+}
 function layoutBattleSprite(canvas){
   if(!isBattleSpriteCanvas(canvas)) return;
   const battle=document.getElementById("battle");
   if(!battle || !battle.classList.contains("active")) return;
   const W=battle.clientWidth, H=battle.clientHeight;
   if(W<2||H<2||!canvas.width||!canvas.height) return;
-  const box=visibleSpriteBounds(canvas);
+  const box=layoutSpriteBounds(canvas);
 
   const ui=battle.querySelector(".ui");
   const battleRect=battle.getBoundingClientRect();
@@ -866,7 +886,7 @@ function layoutBattleSprite(canvas){
   const side=canvas.id==="meSprite" ? "me" : "foe";
   const landscape=W>=H;
   const margin=18;
-  const horizontalSafe=18;
+  const horizontalSafe=landscape ? 22 : 34;
   const visibleW=box.right-box.left;
   const visibleH=box.bottom-box.top;
   const desiredArtH = landscape
@@ -1549,6 +1569,69 @@ if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>{
   if(screens.title.classList.contains("active")) drawTitle();
 });
 
+function waitForSpriteSheets(){
+  return Promise.all(Object.values(SPRITE_SHEETS).map(spec=>{
+    if(spec.image && spec.image.complete && spec.image.naturalWidth) return Promise.resolve();
+    return new Promise(res=>{
+      if(!spec.image) return res();
+      spec.image.addEventListener("load",res,{once:true});
+      spec.image.addEventListener("error",res,{once:true});
+    });
+  }));
+}
+function renderedSpriteRect(canvas){
+  const battle=$("battle"), battleRect=battle.getBoundingClientRect();
+  const rect=canvas.getBoundingClientRect();
+  const box=visibleSpriteBounds(canvas);
+  const sx=rect.width/canvas.width, sy=rect.height/canvas.height;
+  return {
+    left:rect.left-battleRect.left+box.left*sx,
+    top:rect.top-battleRect.top+box.top*sy,
+    right:rect.left-battleRect.left+box.right*sx,
+    bottom:rect.top-battleRect.top+box.bottom*sy
+  };
+}
+async function runBattleLayoutCheck(){
+  await waitForSpriteSheets();
+  window.__FAST=true;
+  const states=["idle","idle2","attack","attack2","hurt","faint"];
+  const errors=[];
+  show("battle");
+  for(const ch of CHARS){
+    for(const side of ["me","foe"]){
+      const other=CHARS.find(c=>c.id!==ch.id) || CHARS[0];
+      me=side==="me" ? ch : other;
+      foe=side==="foe" ? ch : other;
+      meHP=me.hp; foeHP=foe.hp;
+      $("meName").textContent=me.name; $("foeName").textContent=foe.name;
+      setHP("me"); setHP("foe"); buildMenu(); setMenuEnabled(true);
+      $("meSprite").style.opacity=1; $("foeSprite").style.opacity=1;
+      for(const state of states){
+        renderChar($("meSprite"),me,side==="me"?state:"idle");
+        renderChar($("foeSprite"),foe,side==="foe"?state:"idle");
+        layoutBattleSprites();
+        const cv=side==="me" ? $("meSprite") : $("foeSprite");
+        const r=renderedSpriteRect(cv);
+        if(state==="attack" || state==="attack2"){
+          const lunge=side==="me" ? 8 : -8;
+          r.left+=lunge; r.right+=lunge; r.top-=6; r.bottom-=6;
+        }
+        const battle=$("battle");
+        const ui=battle.querySelector(".ui");
+        const uiTop=ui ? ui.getBoundingClientRect().top-battle.getBoundingClientRect().top : battle.clientHeight;
+        if(r.left<0 || r.right>battle.clientWidth || r.top<0 || r.bottom>uiTop){
+          errors.push(`${ch.id}/${side}/${state} rect=${[r.left,r.top,r.right,r.bottom].map(v=>Math.round(v)).join(",")} stage=${battle.clientWidth}x${battle.clientHeight} uiTop=${Math.round(uiTop)}`);
+        }
+      }
+    }
+  }
+  $("textbox").textContent=errors.length
+    ? `LAYOUT FAIL x${errors.length}: ${errors.slice(0,3).join(" | ")}`
+    : `LAYOUT PASS - ${CHARS.length} characters x ${states.length} states x 2 sides stay fully visible`;
+  $("textbox").style.fontSize="14px";
+  return errors;
+}
+
 /* ----- debug hooks for headless screenshots: ?debug=select|battle ----- */
 window.addEventListener("load",()=>{
   const d=new URLSearchParams(location.search).get("debug");
@@ -1726,6 +1809,10 @@ window.addEventListener("load",()=>{
         `oscs scheduled=${oscCount}, ctx=${actx&&actx.state}`+(err?(" err="+err):"");
       $("textbox").style.fontSize="14px";
     },300);
+    return;
+  }
+  else if(d==="layoutcheck"){
+    runBattleLayoutCheck();
     return;
   }
   else if(d==="ohko"){
