@@ -295,7 +295,7 @@
     #meSprite{ left:2%; bottom:45%; height:48vw; max-height:none; width:auto; }
     .foe-plat{ right:5%; top:43%; width:42%; }
     .me-plat{ left:6%; bottom:38%; width:48%; }
-    .plate{ width:74%; padding:9px; border-width:5px; }
+    .plate{ width:56%; padding:9px; border-width:5px; }
     .foe-plate{ left:6%; top:max(6%, env(safe-area-inset-top,0px)); }
     .me-plate{ right:4%; top:56%; width:54%; }
     .hpwrap{ margin-top:7px; gap:6px; }
@@ -415,6 +415,7 @@
         <div class="row1"><span class="pname" id="foeName">FOE</span><span class="lvl">Lv50</span></div>
         <div class="hpwrap"><span class="hp-label">HP</span>
           <div class="hpbar"><div class="hpfill" id="foeHp"></div></div></div>
+        <div class="hpnum" id="foeHpNum">100 / 100</div>
       </div>
 
       <div class="plate me-plate">
@@ -898,11 +899,11 @@ function layoutBattleSprite(canvas){
   if(!Number.isFinite(scale) || scale<=0) scale=1;
 
   const targetCenterX = landscape
-    ? (side==="me" ? W*0.24 : W*0.74)
-    : (side==="me" ? W*0.30 : W*0.56);
+    ? (side==="me" ? W*0.18 : W*0.82)
+    : (side==="me" ? W*0.20 : W*0.76);
   const targetBottomY = landscape
-    ? (side==="me" ? uiTop-H*0.08 : H*0.32)
-    : (side==="me" ? uiTop-H*0.045 : H*0.38);
+    ? (side==="me" ? uiTop-margin : H*0.28)
+    : (side==="me" ? uiTop-margin : H*0.34);
   const boxCenter=(box.left+box.right)/2;
   let left=targetCenterX-boxCenter*scale;
   let top=targetBottomY-box.bottom*scale;
@@ -1880,6 +1881,7 @@ function setHP(who){
   }else{
     const r=foeHP/foe.hp; const el=$("foeHp");
     el.style.width=Math.max(0,r*100)+"%"; el.style.background=hpColor(r);
+    $("foeHpNum").textContent=`${Math.max(0,Math.round(foeHP))} / ${foe.hp}`;
   }
 }
 
