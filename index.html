@@ -69,7 +69,9 @@
 
   /* ---------- Select ---------- */
   #select{
-    background:linear-gradient(160deg,#1a2b4a,#0e1726);
+    background:
+      radial-gradient(circle at 84% 8%, rgba(253,246,227,.10) 0 9%, transparent 10%),
+      linear-gradient(180deg,#0a1230 0%,#13306a 62%,#0e1726 100%);
     padding:calc(env(safe-area-inset-top,0px) + 16px) 16px 16px; color:#eaf0ff;
   }
   #select.active{ display:flex; flex-direction:column; }
@@ -162,35 +164,16 @@
   /* ---------- Battle ---------- */
   #battle{
     overflow:hidden;
-    background:
-      linear-gradient(180deg,#070b22 0%,#13306a 24%,#2f63aa 35%,#1c4f93 35%,#0c2452 62%,#7a5230 62%,#3a2414 100%);
+    background:#0c2452; /* fallback under the canvas backdrop */
     font-family:var(--font-pixel);
   }
-  #battle::before{content:""; position:absolute; inset:0; z-index:0; pointer-events:none;
-    background:
-      radial-gradient(circle at 84% 12%, #fdf6e3 0 3.4%, #cfd8e6 3.5% 4.2%, transparent 4.35%),
-      radial-gradient(circle at 86% 11%, #96a2bc 0 .45%, transparent .55%),
-      radial-gradient(circle at 82% 13.5%, #96a2bc 0 .32%, transparent .42%),
-      linear-gradient(90deg, transparent 0 9%, #10342a 9% 18%, transparent 18%) 0 30%/100% 5% no-repeat,
-      linear-gradient(90deg, transparent 0 12%, #0b261d 12% 15%, transparent 15%) 0 28%/100% 4% no-repeat,
-      linear-gradient(#bfe4ff,#bfe4ff) 0 35%/100% 4px no-repeat,
-      repeating-linear-gradient(0deg, transparent 0 20px, rgba(191,228,255,.22) 20px 24px, transparent 24px 44px) 0 36%/100% 25% no-repeat,
-      linear-gradient(#bfe4ff,#bfe4ff) 7% 43%/18% 4px no-repeat,
-      linear-gradient(#fdf6e3,#fdf6e3) 34% 49%/8% 3px no-repeat,
-      linear-gradient(#bfe4ff,#bfe4ff) 39% 50%/13% 4px no-repeat,
-      linear-gradient(#bfe4ff,#bfe4ff) 57% 45%/25% 4px no-repeat,
-      linear-gradient(90deg, transparent 0 12%, rgba(253,246,227,.18) 12% 18%, transparent 18%) 0 35%/100% 27% no-repeat,
-      repeating-linear-gradient(90deg, transparent 0 82px, rgba(0,0,0,.28) 82px 86px) 0 bottom/100% 38% no-repeat,
-      repeating-linear-gradient(0deg, rgba(90,58,26,.15) 0 31px, rgba(58,36,20,.42) 31px 35px, rgba(255,235,200,.10) 35px 38px) 0 bottom/100% 38% no-repeat; }
+  #battleBg{position:absolute; inset:0; width:100%; height:100%; z-index:0; image-rendering:pixelated;}
   .field{position:absolute; inset:0; z-index:1;}
-  .platform{position:absolute; height:4%; border:0; border-radius:0; background:transparent; filter:none; box-shadow:none; pointer-events:none;}
-  .platform::before{content:""; position:absolute; inset:35% 5% 20%;
-    background:repeating-linear-gradient(90deg, rgba(12,36,82,.55) 0 14px, rgba(28,79,147,.5) 14px 28px);
-    opacity:.55;}
-  .platform::after{content:""; position:absolute; left:8%; right:8%; top:0; height:5px;
-    background:repeating-linear-gradient(90deg,#bfe4ff 0 18px, transparent 18px 34px);}
-  .foe-plat{right:10%; top:50%; width:26%;}
-  .me-plat{left:8%; bottom:20%; width:31%; height:4%;}
+  /* wooden battle platforms — positioned under each fighter by JS */
+  .platform{position:absolute; display:none; border-radius:50%; pointer-events:none;
+    border:3px solid rgba(21,16,28,.85);
+    background:repeating-linear-gradient(90deg,#6a4a2a 0 14px,#5a3a1a 14px 28px);
+    box-shadow:inset 0 4px 0 rgba(255,235,200,.16), inset 0 -5px 0 rgba(58,36,20,.65), 0 5px 0 rgba(7,11,34,.35);}
 
   .sprite{position:absolute; image-rendering:pixelated; transition:transform .25s, opacity .25s; pointer-events:none;
     border:0; outline:0; box-shadow:none; background:transparent;}
@@ -214,25 +197,38 @@
   .hpwrap .hp-label{font-size:clamp(7px,1.3vw,10px); font-weight:bold; color:#d8a200;}
   .hpbar{height:14px; background:#5a5a5a; border-radius:0; overflow:hidden; border:3px solid #15101c;}
   .hpfill{height:100%; width:100%; background:var(--hp-green); transition:width .5s ease, background .3s;}
+  @keyframes hpPulse{ 50%{ opacity:.45; } }
+  .hpfill.low{ animation:hpPulse .9s steps(1,end) infinite; }
   .hpnum{font-size:clamp(7px,1.2vw,10px); text-align:right; margin-top:6px; opacity:.75;}
 
   /* bottom UI */
   .ui{position:absolute; z-index:30; left:4%; right:4%; bottom:4%; height:30%;
     display:flex; flex-direction:column; gap:10px;}
-  .textbox{flex:.78; margin:0; background:var(--panel); border:7px solid var(--panel-edge);
+  .textbox{flex:.78; margin:0; position:relative; background:var(--panel); border:7px solid var(--panel-edge);
     border-radius:0; padding:18px; font-size:clamp(11px,3vw,17px);
     line-height:1.55; display:flex; align-items:center; min-height:0;
     box-shadow:6px 6px 0 rgba(0,0,0,.35); letter-spacing:0;}
+  /* blinking "more text" arrow, Gen-1 style */
+  .textbox::after{content:"▼"; position:absolute; right:10px; bottom:4px;
+    font-size:clamp(9px,1.6vw,13px); color:var(--accent); opacity:0;}
+  .textbox.done::after{opacity:1; animation:blink 1s steps(1,end) infinite;}
   .menu{flex:1; margin:0; display:none; grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-auto-rows:1fr; gap:10px;
     background:var(--panel); border:7px solid var(--panel-edge); border-radius:0; padding:10px;
     box-shadow:6px 6px 0 rgba(0,0,0,.35);}
   .menu.show{display:grid;}
   .move{background:#f2e8cc; border:5px solid var(--panel-edge); border-radius:0; font-family:var(--font-pixel);
-    cursor:pointer; font-size:clamp(8px,2vw,13px); letter-spacing:0; text-transform:uppercase;
-    display:flex; align-items:center; justify-content:center; text-align:center; padding:4px;
+    position:relative; cursor:pointer; font-size:clamp(8px,2vw,13px); letter-spacing:0; text-transform:uppercase;
+    display:flex; align-items:center; justify-content:center; gap:7px; text-align:center; padding:4px 4px 4px 16px;
     min-width:0; overflow:hidden; overflow-wrap:anywhere; word-break:normal; white-space:normal;
     box-shadow:0 5px 0 var(--panel-edge); transition:background .08s, transform .06s, box-shadow .06s;}
+  /* element chip per move (colored from the move's FX color) */
+  .move .mv-dot{flex:none; width:10px; height:10px; background:#9aa; border:2px solid var(--panel-edge);}
+  /* blinking ▶ cursor on the hovered / focused move */
+  .move::before{content:"▶"; position:absolute; left:5px; top:50%; transform:translateY(-50%);
+    font-size:.8em; color:var(--accent); opacity:0;}
+  .move:hover::before,.move:focus-visible::before{opacity:1; animation:blink .9s steps(1,end) infinite;}
   .move:hover{background:#fff0b8;}
+  .move:focus-visible{outline:none; background:#fff0b8;}
   .move:active{transform:translateY(5px); box-shadow:0 0 0 var(--panel-edge);}
   .move:disabled{opacity:.45; cursor:default; transform:none; background:var(--panel);}
   .move.locked{opacity:.5; font-style:italic; background:repeating-linear-gradient(
@@ -257,10 +253,11 @@
   @keyframes flash{0%,100%{filter:none}50%{filter:brightness(2.5) saturate(.3)}}
   .flash{animation:flash .3s;}
 
-  .toast{position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-    background:rgba(12,18,30,.92); color:#fff; padding:18px 30px; border-radius:14px;
-    font-size:clamp(18px,4vw,30px); font-weight:bold; text-align:center; display:none;
-    box-shadow:0 0 0 4px #ffd23f, 0 14px 40px rgba(0,0,0,.5);}
+  .toast{position:absolute; top:42%; left:50%; transform:translate(-50%,-50%); z-index:40;
+    background:var(--panel); color:var(--ink); padding:20px 30px; border-radius:0;
+    border:6px solid var(--panel-edge); font-family:var(--font-pixel); line-height:1.5;
+    font-size:clamp(13px,3vw,24px); text-align:center; display:none;
+    box-shadow:8px 8px 0 rgba(0,0,0,.4);}
   .toast.show{display:block;}
 
   /* battle enter/exit transition (curtain + flash) */
@@ -293,8 +290,6 @@
   @media (max-width:760px) and (orientation:portrait){
     #foeSprite{ right:-4%; top:16%; height:42vw; max-height:none; width:auto; }
     #meSprite{ left:2%; bottom:45%; height:48vw; max-height:none; width:auto; }
-    .foe-plat{ right:5%; top:43%; width:42%; }
-    .me-plat{ left:6%; bottom:38%; width:48%; }
     .plate{ width:56%; padding:9px; border-width:5px; }
     .foe-plate{ left:6%; top:max(6%, env(safe-area-inset-top,0px)); }
     .me-plate{ right:4%; top:56%; width:54%; }
@@ -312,8 +307,6 @@
     /* battle: foe upper-right, player lower-left, UI in a bottom row */
     #foeSprite{ right:9%; top:7%; height:19.125vw; max-height:none; width:auto; }
     #meSprite{ left:7%; bottom:34%; height:23.625vw; max-height:none; width:auto; }
-    .foe-plat{ right:10%; top:50%; width:26%; }
-    .me-plat{ left:8%; bottom:20%; width:31%; height:4%; }
     .plate{ width:35%; }
     .foe-plate{ left:4%; top:max(7%, env(safe-area-inset-top,0px)); }
     .me-plate{ right:5%; top:56%; bottom:auto; }
@@ -405,6 +398,7 @@
   <!-- BATTLE -->
   <div id="battle" class="screen">
     <div class="field">
+      <canvas id="battleBg"></canvas>
       <div class="platform foe-plat"></div>
       <div class="platform me-plat"></div>
       <canvas id="foeSprite" class="sprite"></canvas>
@@ -851,8 +845,8 @@ function frameBoundsFor(spec,state){
   const b=spec && spec.bounds && (spec.bounds[state] || spec.bounds.idle);
   return b || [0,0,spec?spec.frameWidth:FALLBACK_W,spec?spec.frameHeight:FALLBACK_H];
 }
-function visibleSpriteBounds(canvas){
-  const id=canvas.dataset.charId, state=canvas.dataset.spriteState||"idle";
+function stateSpriteBounds(canvas,state){
+  const id=canvas.dataset.charId;
   const ch=CHARS.find(c=>c.id===id) || {id};
   const spec=readySheet(id) || SPRITE_SHEETS[id];
   const target=spriteRenderTarget(canvas,spec);
@@ -861,6 +855,9 @@ function visibleSpriteBounds(canvas){
   const left=flip ? canvas.width-(target.dx+r) : target.dx+l;
   const right=flip ? canvas.width-(target.dx+l) : target.dx+r;
   return {left,top:target.dy+t,right,bottom:target.dy+b};
+}
+function visibleSpriteBounds(canvas){
+  return stateSpriteBounds(canvas,canvas.dataset.spriteState||"idle");
 }
 function layoutSpriteBounds(canvas){
   const id=canvas.dataset.charId;
@@ -887,12 +884,12 @@ function layoutBattleSprite(canvas){
   const side=canvas.id==="meSprite" ? "me" : "foe";
   const landscape=W>=H;
   const margin=18;
-  const horizontalSafe=landscape ? 22 : 34;
+  const horizontalSafe=landscape ? 22 : 26;
   const visibleW=box.right-box.left;
   const visibleH=box.bottom-box.top;
   const desiredArtH = landscape
     ? (side==="me" ? H*0.34 : H*0.27)
-    : (side==="me" ? W*0.52 : W*0.38);
+    : (side==="me" ? W*0.46 : W*0.36);
   const maxArtH = Math.max(1, uiTop-margin*2);
   let scale=Math.min(desiredArtH/visibleH, maxArtH/visibleH);
   scale=Math.min(scale, (W-horizontalSafe*2)/visibleW);
@@ -901,9 +898,10 @@ function layoutBattleSprite(canvas){
   const targetCenterX = landscape
     ? (side==="me" ? W*0.18 : W*0.82)
     : (side==="me" ? W*0.20 : W*0.76);
+  // me stands on the dock just above the UI; foe rides a raft out on the sea
   const targetBottomY = landscape
-    ? (side==="me" ? uiTop-margin : H*0.28)
-    : (side==="me" ? uiTop-margin : H*0.34);
+    ? (side==="me" ? uiTop-margin : H*0.48)
+    : (side==="me" ? uiTop-margin : H*0.42);
   const boxCenter=(box.left+box.right)/2;
   let left=targetCenterX-boxCenter*scale;
   let top=targetBottomY-box.bottom*scale;
@@ -922,10 +920,81 @@ function layoutBattleSprite(canvas){
   canvas.style.bottom="auto";
   canvas.style.width=`${canvas.width*scale}px`;
   canvas.style.height=`${canvas.height*scale}px`;
+
+  // park the wooden platform under the fighter's feet (sized to the idle pose)
+  const plat=battle.querySelector(side==="me"?".me-plat":".foe-plat");
+  if(plat){
+    const idle=stateSpriteBounds(canvas,"idle");
+    const cx=left+((idle.left+idle.right)/2)*scale;
+    const feetY=top+idle.bottom*scale;
+    const pw=clampValue((idle.right-idle.left)*scale*1.7, W*0.14, W*0.26);
+    const ph=Math.max(12, pw*0.17);
+    plat.style.display="block";
+    plat.style.left=`${cx-pw/2}px`;
+    plat.style.top=`${feetY-ph*0.55}px`;
+    plat.style.width=`${pw}px`;
+    plat.style.height=`${ph}px`;
+  }
 }
 function layoutBattleSprites(){
   layoutBattleSprite(document.getElementById("meSprite"));
   layoutBattleSprite(document.getElementById("foeSprite"));
+}
+/* ---- battle backdrop: night harbor painted on canvas (shares the title palette) ---- */
+function drawBattleBg(){
+  const cv=document.getElementById("battleBg"); if(!cv) return;
+  const W=cv.clientWidth|0, H=cv.clientHeight|0; if(W<2||H<2) return;
+  cv.width=W; cv.height=H;
+  const ctx=cv.getContext("2d"); ctx.imageSmoothingEnabled=false;
+  const portrait=H>W;
+  const horizon=H*(portrait?0.32:0.35), dockTop=H*(portrait?0.56:0.62);
+  // sky
+  let g=ctx.createLinearGradient(0,0,0,horizon);
+  g.addColorStop(0,"#070b22"); g.addColorStop(0.6,"#13306a"); g.addColorStop(1,"#2f63aa");
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,horizon);
+  // stars (deterministic)
+  ctx.fillStyle="#e6edff";
+  for(let i=0;i<70;i++){
+    const x=(i*131+i*i*7)%W, y=(i*47+(i%5)*23)%Math.max(8,horizon*0.75|0);
+    ctx.globalAlpha=0.3+((i*7)%5)*0.12; ctx.fillRect(x,y,(i%5===0)?2:1,(i%5===0)?2:1);
+  }
+  ctx.globalAlpha=1;
+  // moon, kept high so the foe never overlaps it
+  const mx=W*0.86, my=H*0.10, mr=Math.max(14,H*0.055);
+  ctx.fillStyle="rgba(220,230,255,.13)"; ctx.beginPath(); ctx.arc(mx,my,mr*1.8,0,7); ctx.fill();
+  const mg=ctx.createRadialGradient(mx-mr*0.3,my-mr*0.3,mr*0.2,mx,my,mr);
+  mg.addColorStop(0,"#fdf6e3"); mg.addColorStop(1,"#cfd8e6");
+  ctx.fillStyle=mg; ctx.beginPath(); ctx.arc(mx,my,mr,0,7); ctx.fill();
+  ctx.fillStyle="rgba(150,162,188,.45)";
+  ctx.beginPath(); ctx.arc(mx+mr*0.28,my-mr*0.05,mr*0.18,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(mx-mr*0.25,my+mr*0.3,mr*0.12,0,7); ctx.fill();
+  // distant island on the horizon
+  drawIsland(ctx,W*0.12,horizon,H);
+  // sea
+  g=ctx.createLinearGradient(0,horizon,0,dockTop);
+  g.addColorStop(0,"#1c4f93"); g.addColorStop(1,"#0c2452");
+  ctx.fillStyle=g; ctx.fillRect(0,horizon,W,dockTop-horizon);
+  ctx.fillStyle="rgba(253,246,227,.10)"; ctx.fillRect(mx-mr*0.5,horizon,mr,dockTop-horizon); // moon glitter
+  ctx.fillStyle="#bfe4ff"; ctx.fillRect(0,horizon-2,W,3); // horizon foam
+  // foam dashes on the water (deterministic)
+  const seaH=Math.max(10,(dockTop-horizon-14)|0);
+  for(let i=0;i<16;i++){
+    const wx=(i*191+47)%W, wy=horizon+8+((i*131)%seaH);
+    const ww=Math.max(18,W*0.02)+(i%3)*W*0.015;
+    ctx.globalAlpha=0.22+(i%3)*0.12;
+    ctx.fillStyle=i%4===0?"#fdf6e3":"#bfe4ff";
+    ctx.fillRect(wx,wy,ww,Math.max(2,H*0.004));
+  }
+  ctx.globalAlpha=1;
+  // dock
+  g=ctx.createLinearGradient(0,dockTop,0,H); g.addColorStop(0,"#7a5230"); g.addColorStop(1,"#3a2414");
+  ctx.fillStyle=g; ctx.fillRect(0,dockTop,W,H-dockTop);
+  ctx.fillStyle="rgba(255,235,200,.14)"; ctx.fillRect(0,dockTop,W,Math.max(2,H*0.005));
+  ctx.fillStyle="rgba(0,0,0,.28)";
+  const plank=Math.max(64,W*0.07);
+  for(let x=plank*0.5;x<W;x+=plank) ctx.fillRect(x,dockTop,Math.max(2,W*0.003),H-dockTop);
+  ctx.fillStyle="rgba(58,36,20,.35)";
+  for(let y=dockTop+H*0.045;y<H;y+=H*0.05) ctx.fillRect(0,y,W,2);
 }
 function drawProceduralChar(ctx,ch,x,y,w,h){
   ctx.save();
@@ -1396,7 +1465,7 @@ const $=id=>document.getElementById(id);
 const screens={title:$("title"),select:$("select"),create:$("create"),battle:$("battle")};
 function show(name){
   for(const k in screens) screens[k].classList.toggle("active",k===name);
-  if(name==="battle") requestAnimationFrame(layoutBattleSprites);
+  if(name==="battle") requestAnimationFrame(()=>{ drawBattleBg(); layoutBattleSprites(); });
 }
 
 // curtain+flash transition; midCallback runs while the screen is fully covered
@@ -1562,7 +1631,7 @@ function drawPixelLogo(ctx,W,H){
 }
 window.addEventListener("resize",()=>{
   if(screens.title.classList.contains("active")) drawTitle();
-  if(screens.battle.classList.contains("active")) requestAnimationFrame(layoutBattleSprites);
+  if(screens.battle.classList.contains("active")) requestAnimationFrame(()=>{ drawBattleBg(); layoutBattleSprites(); });
 });
 setTimeout(drawTitle,0);
 // redraw once the pixel display font has loaded so the logo uses it
@@ -1858,14 +1927,15 @@ window.addEventListener("load",()=>{
 
 /* ----- text typing ----- */
 function typeText(str){
-  if(window.__FAST){ $("textbox").textContent=str; return Promise.resolve(); }
+  const box=$("textbox"); box.classList.remove("done");
+  if(window.__FAST){ box.textContent=str; return Promise.resolve(); }
   return new Promise(res=>{
-    const box=$("textbox"); box.textContent="";
+    box.textContent="";
     let i=0;
     const t=setInterval(()=>{
       box.textContent=str.slice(0,++i);
       if(i%2===0) sfx.blip();
-      if(i>=str.length){ clearInterval(t); setTimeout(res,260); }
+      if(i>=str.length){ clearInterval(t); box.classList.add("done"); setTimeout(res,260); }
     },22);
   });
 }
@@ -1877,10 +1947,12 @@ function setHP(who){
   if(who==="me"){
     const r=meHP/me.hp; const el=$("meHp");
     el.style.width=Math.max(0,r*100)+"%"; el.style.background=hpColor(r);
+    el.classList.toggle("low", r>0 && r<=0.2);
     $("meHpNum").textContent=`${Math.max(0,Math.round(meHP))} / ${me.hp}`;
   }else{
     const r=foeHP/foe.hp; const el=$("foeHp");
     el.style.width=Math.max(0,r*100)+"%"; el.style.background=hpColor(r);
+    el.classList.toggle("low", r>0 && r<=0.2);
     $("foeHpNum").textContent=`${Math.max(0,Math.round(foeHP))} / ${foe.hp}`;
   }
 }
@@ -2368,7 +2440,10 @@ function buildMenu(){
   const menu=$("menu"); menu.innerHTML="";
   me.moves.forEach(mv=>{
     const b=document.createElement("button");
-    b.className="move"; b.textContent=mv.n; b._move=mv;
+    b.className="move"; b._move=mv;
+    const dot=document.createElement("i"); dot.className="mv-dot"; dot.style.background=mv.c;
+    const nm=document.createElement("span"); nm.className="mv-nm"; nm.textContent=mv.n;
+    b.appendChild(dot); b.appendChild(nm);
     b.onclick=()=>chooseMove(mv);
     menu.appendChild(b);
   });
@@ -2388,6 +2463,7 @@ async function playerTurn(){
   }
   setMenuEnabled(true);
   await typeText(`What will ${me.name} do?`);
+  $("textbox").classList.remove("done"); // prompt, not pending dialog — no arrow
   $("menu").classList.add("show");
   // glow the freshly-unlocked move button(s)
   for(const mv of justUnlocked){
@@ -2402,7 +2478,8 @@ function setMenuEnabled(on){
     const locked = on && isLocked(mv,"me");
     b.disabled = !on || locked;
     b.classList.toggle("locked", locked);
-    b.textContent = (locked?"🔒 ":"")+mv.n;
+    const nm=b.querySelector(".mv-nm");
+    if(nm) nm.textContent = (locked?"🔒 ":"")+mv.n;
   });
 }
 
