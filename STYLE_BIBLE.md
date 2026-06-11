@@ -166,6 +166,7 @@ into the game UI.
 | Character sprites | `DRAW` object + `renderChar()` |
 | Attack FX | `FX` registry + `animateFx()` |
 | Title harbor scene | `drawTitle()`, `drawShip()`, `drawIsland()` |
+| Battle backdrop | `drawBattleBg()` (canvas night harbor) + `.platform` rafts positioned in `layoutBattleSprite()` |
 | Pixel logo | `drawPixelLogo()` |
 | Fonts | `--font-display`, `--font-ui`, `--font-pixel` |
 | Post-processing | No global overlay; keep effects local to moves/UI |
